@@ -3,6 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0b0e16">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Acorn Dirt GP">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="description" content="3Dで遊べる山道オフロードバイクレース。HTML1枚・外部ファイルなし。開くと自動デモ、キーボードで遊べます。">
 <title>Acorn Dirt GP</title>
 <style>
@@ -3013,7 +3021,8 @@ boot();
   // three.js r128 is loaded by the <script> tag above (cdnjs); these mirrors are tried only if that failed
   var urls = [
     'https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js',
-    'https://unpkg.com/three@0.128.0/build/three.min.js'
+    'https://unpkg.com/three@0.128.0/build/three.min.js',
+    'vendor/three.min.js'
   ];
   var i = 0;
   function msg(t) { var el = document.getElementById('loadmsg'); if (el) el.textContent = t; }
@@ -3042,6 +3051,11 @@ boot();
   }
   if (window.THREE) boot(); else next();
 })();
+</script>
+<script>
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', function () { try { navigator.serviceWorker.register('sw.js').catch(function () {}); } catch (e) {} });
+}
 </script>
 </body>
 </html>

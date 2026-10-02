@@ -30,3 +30,13 @@
 
 - インターネット接続が必要です（three.js r128 を cdnjs / jsDelivr / unpkg のどれかから読み込みます）。
 - WebGL が使えるブラウザ（Chrome / Edge / Firefox / Safari の最近のバージョン）で動きます。
+
+## スマホ・アプリとして使う（PWA）
+
+HTTPS で公開すると、ホーム画面に追加してアプリのように全画面・横向きで遊べ、オフラインでも起動します。
+
+- 公開: GitHub Pages（Settings → Pages → Branch を `main` / root）などで、このリポジトリのルートをそのまま公開します。
+- iPhone: Safari で開く → 共有 → 「ホーム画面に追加」
+- Android: Chrome で開く → メニュー → 「アプリをインストール」/「ホーム画面に追加」
+- ファイル: `index.html`（本体）、`manifest.webmanifest`、`sw.js`（オフライン用）、`icons/`、`vendor/three.min.js`（CDN が使えないときの予備、MIT）
+- `file://` で直接開いた場合は、従来どおり遊べますがアプリ化はできません。
