@@ -1,0 +1,14 @@
+# Acceptance checklist (all must pass, with evidence)
+- [ ] Boots with zero console errors/warnings (smoke.js)
+- [ ] Title/auto-demo runs by itself; screenshot looks right
+- [ ] Full flow with real keypresses: start -> countdown -> play -> finish -> results -> restart
+- [ ] AI/bot plays through the whole level (no stuck, off-track % low)
+- [ ] Fuzz: random key mashing for minutes, no NaN / out-of-range / exceptions
+- [ ] Step-size independence (dt 1/20 ... 1/240) behaves the same
+- [ ] Recovery paths: respawn, wrong way, falling out of world
+- [ ] Soak: >=10 min demo, stable heap
+- [ ] Pause/blur/resume; fullscreen/gamepad/localStorage failures are harmless
+- [ ] CDN fallback chain works; (Artifact) emulated CSP: no violations
+- [ ] Touch layout at phone size if touch is claimed
+- [ ] Screenshots reviewed: title, play, every special area, results, help
+- [ ] Final report lists unverified items honestly
