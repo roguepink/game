@@ -172,6 +172,7 @@ body{position:relative;font-family:var(--font);font-weight:800;color:#fff}
   <div class="layer" id="loading"><div class="big pop">ACORN<br>DIRT GP</div><div id="loadmsg" class="pop">Loading…</div><div id="loadbar"><i></i></div></div>
 </div>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 // ---- game code (runs once three.js is available) ----
 function startGame(){
@@ -3009,8 +3010,8 @@ boot();
 </script>
 <script>
 (function () {
+  // three.js r128 is loaded by the <script> tag above (cdnjs); these mirrors are tried only if that failed
   var urls = [
-    'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
     'https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js',
     'https://unpkg.com/three@0.128.0/build/three.min.js'
   ];
@@ -3039,7 +3040,7 @@ boot();
     s.onerror = next;
     document.head.appendChild(s);
   }
-  next();
+  if (window.THREE) boot(); else next();
 })();
 </script>
 </body>
