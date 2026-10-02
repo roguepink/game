@@ -125,7 +125,7 @@ body{position:relative;font-family:var(--font);font-weight:800;color:#fff}
 /* ---- rotate hint (portrait phones) ---- */
 #rotate{display:none;position:absolute;left:0;top:0;right:0;bottom:0;z-index:99;background:#ff9a1f;color:#fff;align-items:center;justify-content:center;flex-direction:column;gap:14px;font-size:30px;text-align:center;padding:20px}
 #rotate b{font-size:64px}
-@media (orientation:portrait) and (max-width:900px){#rotate{display:flex}}
+@media (orientation:portrait) and (max-width:900px) and (pointer:coarse){#rotate{display:flex}}
 /* ---- touch ---- */
 #stage.touch #rankBox{bottom:168px;transform:scale(.8);transform-origin:left bottom}
 #stage.touch #speedBox{bottom:168px;transform:scale(.8);transform-origin:right bottom}
@@ -2452,7 +2452,7 @@ const els = {};
 function initDom() {
   ['stage', 'gl', 'hud', 'itemBox', 'itemCv', 'itemName', 'board', 'lapNum', 'timeTxt', 'mini', 'rankBox', 'rankNum', 'rankSuf', 'rankOf', 'speedNum', 'boostBar', 'msg', 'count', 'wrong', 'speedfx', 'title', 'ctrlsL', 'pause', 'results', 'help', 'wipe', 'loading', 'loadmsg', 'flash', 'touch', 'ctrls'].forEach((k) => { els[k] = $(k); });
   els.boostFill = els.boostBar.querySelector('i');
-  els.ctrls.innerHTML = '<span class="k"><kbd>↑</kbd>アクセル</span><span class="k"><kbd>↓</kbd>ブレーキ</span><span class="k"><kbd>←</kbd><kbd>→</kbd>ハンドル</span><span class="k"><kbd>Shift</kbd>ドリフト・トリック</span><span class="k"><kbd>Space</kbd>アイテム</span><span class="k opt"><kbd>H</kbd>ヘルプ</span><span class="k opt"><kbd>M</kbd>音</span>';
+  els.ctrls.innerHTML = '<span class="k"><kbd>↑</kbd>アクセル</span><span class="k"><kbd>↓</kbd>ブレーキ</span><span class="k"><kbd>←</kbd><kbd>→</kbd>ハンドル</span><span class="k"><kbd>Shift</kbd>ドリフト・トリック</span><span class="k"><kbd>Space</kbd>アイテム</span><span class="k opt"><kbd>H</kbd>ヘルプ</span><span class="k opt"><kbd>M</kbd>音</span><span class="k opt"><kbd>F</kbd>全画面</span>';
   els.board.innerHTML = CHARS.map(() => '<div class="brow"><b></b><i class="dot"></i><span></span></div>').join('');
   els.rows = Array.from(els.board.children);
 }
@@ -2883,7 +2883,7 @@ function initInput() {
     '<div>ジャンプ中に <kbd>Shift</kbd> で<b>トリック</b> → 着地でブースト</div>' +
     '<div><kbd>Space</kbd>（<kbd>X</kbd>）アイテム：おにぎりターボ / どんぐりショット / どろだんご</div>' +
     '<div>青いパッドでダッシュ・泥はスピードダウン・コース外の草も遅くなります</div>' +
-    '<div style="text-align:center;font-size:22px;opacity:.7;margin-top:6px"><kbd>H</kbd> 閉じる　<kbd>M</kbd> サウンド　<kbd>P</kbd> ポーズ　<kbd>R</kbd> リスタート　<kbd>Esc</kbd> タイトル</div></div>';
+    '<div style="text-align:center;font-size:22px;opacity:.7;margin-top:6px"><kbd>H</kbd> 閉じる　<kbd>M</kbd> サウンド　<kbd>P</kbd> ポーズ　<kbd>R</kbd> リスタート　<kbd>Esc</kbd> タイトル　<kbd>F</kbd> 全画面　<kbd>Q</kbd> 画質</div></div>';
 }
 
 // ---------- quality ----------
