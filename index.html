@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>Acorn Dirt GP</title>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="description" content="3Dで遊べる山道オフロードバイクレース。HTML1枚・外部ファイルなし。開くと自動デモ、キーボードで遊べます。">
 <style>
 :root{
@@ -13,7 +13,8 @@
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#05070b; } }
 :root[data-theme="dark"]{ --bg:#05070b; }
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
+html,body{margin:0;height:100%;background:var(--bg);overflow:hidden;overscroll-behavior:none}
+#wrap{position:fixed;left:0;top:0;width:100%;height:100%;overflow:hidden}
 body{font-family:var(--font);font-weight:800;color:#fff}
 #stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;overflow:hidden;background:#bfe6ff;user-select:none;-webkit-user-select:none;touch-action:none}
 #gl{position:absolute;left:0;top:0;width:1280px;height:720px;display:block}
@@ -83,6 +84,13 @@ body{font-family:var(--font);font-weight:800;color:#fff}
 #pressKey{position:absolute;left:0;bottom:78px;width:1280px;text-align:center;font-size:58px;animation:pk 1s infinite alternate}
 #pressKey small{display:block;font-size:24px;margin-top:6px;-webkit-text-stroke:5px var(--ink);paint-order:stroke fill}
 @keyframes pk{from{transform:scale(1)}to{transform:scale(1.06)}}
+#ctrlsL{transition:opacity .5s}
+#ctrlsL.off{opacity:0}
+#ctrlsL.race #ctrls{bottom:auto;top:18px;left:176px;width:890px;font-size:15px;gap:6px}
+#ctrlsL.race .opt{display:none}
+#pause{display:none;background:rgba(10,14,40,.45)}
+#pause .pbox{position:absolute;left:0;top:250px;width:1280px;text-align:center;font-size:130px}
+#pause small{display:block;font-size:34px;-webkit-text-stroke:5px var(--ink);paint-order:stroke fill}
 #ctrls{position:absolute;left:0;bottom:16px;width:1280px;text-align:center;font-size:17px;display:flex;justify-content:center;gap:9px;flex-wrap:nowrap;white-space:nowrap;text-shadow:0 2px 0 rgba(0,0,0,.55)}
 #ctrls .k{display:inline-flex;align-items:center;gap:6px;background:rgba(18,28,58,.62);padding:5px 12px 5px 7px;border-radius:999px;border:2px solid rgba(255,255,255,.55)}
 #ctrls kbd{font-family:inherit;font-weight:900;background:#fff;color:#2a1608;border-radius:7px;padding:1px 8px;box-shadow:0 3px 0 #b8a27a;font-size:15px;text-shadow:none;-webkit-text-stroke:0}
@@ -98,6 +106,7 @@ body{font-family:var(--font);font-weight:800;color:#fff}
 #results .row .dot{width:30px;height:30px;border-radius:50%;border:4px solid #fff;box-shadow:0 0 0 2px #3a2408}
 #results .row .nm{flex:1}
 #results .row .tm{font-variant-numeric:tabular-nums;font-size:24px}
+#results .best{text-align:center;font-size:30px;margin-top:6px;color:#c4410c}
 #results .hint{margin-top:14px;text-align:center;font-size:22px;opacity:.85}
 /* ---- help / pause ---- */
 #help{display:none;background:rgba(10,14,40,.7);pointer-events:auto}
@@ -118,12 +127,16 @@ body{font-family:var(--font);font-weight:800;color:#fff}
 #rotate b{font-size:64px}
 @media (orientation:portrait) and (max-width:900px){#rotate{display:flex}}
 /* ---- touch ---- */
+#stage.touch #rankBox{bottom:168px;transform:scale(.8);transform-origin:left bottom}
+#stage.touch #speedBox{bottom:168px;transform:scale(.8);transform-origin:right bottom}
+#stage.touch #ctrlsL{display:none}
 #touch{display:none;pointer-events:none}
 #touch .tb{position:absolute;bottom:26px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.28);border:5px solid rgba(255,255,255,.75);display:flex;align-items:center;justify-content:center;font-size:30px;pointer-events:auto;touch-action:none}
 #touch .tb.on{background:rgba(255,210,63,.6)}
 </style>
 </head>
 <body>
+<div id="wrap">
 <div id="rotate"><b>⟳</b><div>画面を横向きにしてね<br><small>Please rotate your device</small></div></div>
 <div id="stage">
   <canvas id="gl" width="1280" height="720"></canvas>
@@ -144,9 +157,10 @@ body{font-family:var(--font);font-weight:800;color:#fff}
   <div class="layer" id="title">
     <div id="titleShade"></div>
     <div id="logoWrap"><div id="logoSub">OFFROAD MOUNTAIN RACING</div><div id="logo" class="pop-logo">ACORN DIRT GP</div><div id="logoJp" class="pop">どんぐりダートGP ― 山道オフロードバイクレース</div></div>
-    <div id="pressKey" class="pop">PRESS ANY KEY<small>何かキーを押してスタート！</small></div>
-    <div id="ctrls"></div>
+    <div id="pressKey" class="pop">PRESS ANY KEY<small>何かキーを押して（クリックでも）スタート！</small></div>
   </div>
+  <div class="layer" id="ctrlsL"><div id="ctrls"></div></div>
+  <div class="layer" id="pause"><div class="pbox pop">PAUSE<small>P キーで再開</small></div></div>
   <div class="layer" id="soundHint" style="display:none"></div>
   <div class="layer" id="results"></div>
   <div class="layer" id="help"></div>
@@ -156,6 +170,7 @@ body{font-family:var(--font);font-weight:800;color:#fff}
   </div>
   <div class="layer" id="wipe"></div>
   <div class="layer" id="loading"><div class="big pop">ACORN<br>DIRT GP</div><div id="loadmsg" class="pop">Loading…</div><div id="loadbar"><i></i></div></div>
+</div>
 </div>
 <script>
 // ---- game code (runs once three.js is available) ----
@@ -567,12 +582,6 @@ function buildHeightfield() {
         if (br && inRange(q.s, br.s0 - 10, br.s1 + 10)) {
           const fs = smooth(0, 14, sDelta(q.s, br.s0 - 10)) * smooth(0, 14, sDelta(br.s1 + 10, q.s));
           hv -= 15 * fs * (1 - smooth(w + 2, w + 34, q.d));
-        }
-        if (tn && inRange(q.s, tn.s0 - 4, tn.s1 + 4)) {
-          const ft = smooth(0, 7, sDelta(q.s, tn.s0 - 4)) * smooth(0, 7, sDelta(tn.s1 + 4, q.s));
-          const top = yc + 21 + vnoise(x * 0.05, z * 0.05) * 2;
-          const m = top * ft + hv * (1 - ft);
-          hv = Math.max(hv, lerp(hv, m, 1 - smooth(w + 6, w + 36, q.d)));
         }
       }
       HF.hp[id] = hp; HF.hv[id] = hv; HF.dr[id] = dRoad; HF.sv[id] = sv; HF.lv[id] = lv;
@@ -1048,6 +1057,16 @@ function geoPost() {
   ]);
 }
 const hsl = (h, s, l) => new THREE.Color().setHSL(h, s, l);
+// ---- tunnel hill (a separate mesh, not part of the height field) ----
+const TUN = { Wm: 34, Hm: 22.5, off: 3 };
+function tunProf(x, s) {
+  const u = x / TUN.Wm, a = Math.max(0, 1 - u * u);
+  return TUN.Hm * Math.pow(a, 0.85) + vnoise(x * 0.13 + 3, s * 0.13) * 1.7 * (1 - Math.pow(Math.abs(u), 4));
+}
+function inTunnelFootprint(s, l, margin) {
+  const tn = FEAT.tunnel; return inS(s, tn.s0 - 6 - margin, tn.s1 + 6 + margin) && Math.abs(l) < TUN.Wm + 2 + margin;
+}
+
 
 function buildScenery() {
   const R = mulberry32(31415);
@@ -1078,6 +1097,7 @@ function buildScenery() {
     const ny = HF.nrm[id * 3 + 1]; if (ny < 0.8) continue;
     const hv = HF.hv[id], hp = HF.hp[id];
     if (hp - hv > 1.2) continue;                  // inside the gorge
+    if (dr < 75 && inTunnelFootprint(HF.sv[id], HF.lv[id], 4)) continue;
     if (hv > 112) continue;
     const sc = (0.85 + R() * 0.8) * (1 + Math.min(edge, 300) / 260);
     const kind = R();
@@ -1092,6 +1112,7 @@ function buildScenery() {
     const edge = dr - (wAt(HF.sv[id] / TR.ds));
     if (edge < WALL_EXTRA + 1.5 || R() > 0.55 * Math.exp(-(edge - 6) / 30)) continue;
     if (HF.nrm[id * 3 + 1] < 0.78 || HF.hp[id] - HF.hv[id] > 1) continue;
+    if (inTunnelFootprint(HF.sv[id], HF.lv[id], 3)) continue;
     const sc = 0.8 + R() * 1.1;
     bushes.push({ x, y: HF.hv[id] - 0.1, z, sx: sc, sy: sc * (0.8 + R() * 0.4), ry: R() * TAU, c: R() < 0.3 ? roundCol() : pineCol() });
   }
@@ -1100,11 +1121,24 @@ function buildScenery() {
     const id = Math.round((z - HF.z0) / cell) * nx + Math.round((x - HF.x0) / cell);
     const dr = HF.dr[id]; if (dr < 20) continue;
     const steep = HF.nrm[id * 3 + 1] < 0.8, high = HF.hv[id] > 100;
+    if (dr < 75 && inTunnelFootprint(HF.sv[id], HF.lv[id], 3)) continue;
     if (!(steep || high || (dr < 140 && R() < 0.02))) continue;
     if (R() > 0.4) continue;
     const sc = 1.6 + R() * 5.5;
     const g = 0.5 + R() * 0.35;
     rocks.push({ x, y: HF.hv[id] + sc * 0.1, z, sx: sc * (0.9 + R() * 0.5), sy: sc * (0.7 + R() * 0.6), sz: sc * (0.9 + R() * 0.5), ry: R() * TAU, c: new THREE.Color(g, g * 0.97, g * 0.93) });
+  }
+  // trees & rocks on top of the tunnel hill
+  {
+    const tn2 = FEAT.tunnel, len2 = sDelta(tn2.s1, tn2.s0) + 3, fr2 = {};
+    for (let n = 0; n < 60; n++) {
+      const ss = tn2.s0 - 1.5 + R() * len2, x = (R() * 2 - 1) * TUN.Wm * 0.85;
+      trackFrame(ss, fr2);
+      const wx = fr2.x + fr2.rx * x, wz = fr2.z + fr2.rz * x, y = yAt(fr2.fi) - TUN.off + tunProf(x, ss) - 0.25, sc = 0.9 + R() * 0.9;
+      if (R() < 0.55) pines.push({ x: wx, y, z: wz, sx: sc, sy: sc * (0.9 + R() * 0.5), ry: R() * TAU, c: pineCol() });
+      else if (R() < 0.6) rounds.push({ x: wx, y, z: wz, sx: sc * 0.9, sy: sc, ry: R() * TAU, c: roundCol() });
+      else { const g = 0.55 + R() * 0.3; rocks.push({ x: wx, y: y + 0.3, z: wz, sx: 1.2 + R() * 1.6, sy: 1 + R() * 1.2, sz: 1.2 + R() * 1.6, ry: R() * TAU, c: new THREE.Color(g, g * 0.97, g * 0.92) }); }
+    }
   }
   // 2) roadside strips: wall line, posts, flowers, signs
   const flowerCols = [0xff5a5a, 0xffd23f, 0xff8ad8, 0xffffff, 0x7ab8ff, 0xff9a3a];
@@ -1285,6 +1319,55 @@ function buildTunnel() {
     P.push(part(GEO.sphere, 0xfff0a0, fr.x, y, fr.z, 0, 0, 0, 0.7, 0.45, 0.7));
   }
   const pm = new THREE.Mesh(mergeParts(P), new THREE.MeshBasicMaterial({ vertexColors: true })); scene.add(pm);
+  buildTunnelHill();
+}
+function buildTunnelHill() {
+  const tn = FEAT.tunnel, fr = {};
+  const sA = tn.s0 - 1.5, len = sDelta(tn.s1, tn.s0) + 3, rows = Math.ceil(len / 3), K = 30, W = TUN.Wm;
+  const nv = (rows + 1) * (K + 1), pos = new Float32Array(nv * 3), col = new Float32Array(nv * 3);
+  const cGrass = new THREE.Color(0x5ccc4a), cRock = new THREE.Color(0x8a7658), cTmp = new THREE.Color();
+  let o = 0;
+  for (let r = 0; r <= rows; r++) {
+    const s = sA + len * r / rows; trackFrame(s, fr);
+    const base = yAt(fr.fi) - TUN.off;
+    for (let k = 0; k <= K; k++) {
+      const x = lerp(-W, W, k / K), h = tunProf(x, s);
+      pos[o * 3] = fr.x + fr.rx * x; pos[o * 3 + 1] = base + h - 4 * Math.pow(Math.abs(x) / W, 8) * 0 ; pos[o * 3 + 2] = fr.z + fr.rz * x;
+      const top = smooth(0.35, 0.8, h / TUN.Hm);
+      cTmp.copy(cRock).lerp(cGrass, top); const n = 0.92 + vnoise(x * 0.2, s * 0.2) * 0.1;
+      col[o * 3] = cTmp.r * n; col[o * 3 + 1] = cTmp.g * n; col[o * 3 + 2] = cTmp.b * n; o++;
+    }
+  }
+  const idx = new Uint32Array(rows * K * 6); let kk = 0;
+  for (let r = 0; r < rows; r++) for (let k = 0; k < K; k++) { const a = r * (K + 1) + k, b = a + 1, c = a + K + 1, d = c + 1; idx[kk++] = a; idx[kk++] = b; idx[kk++] = c; idx[kk++] = b; idx[kk++] = d; idx[kk++] = c; }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  g.setIndex(new THREE.BufferAttribute(idx, 1)); g.computeVertexNormals(); g.computeBoundingSphere();
+  const mat = new THREE.MeshLambertMaterial({ vertexColors: true });
+  const hill = new THREE.Mesh(g, mat); hill.receiveShadow = true; scene.add(hill);
+  // portal faces: a wall with an arched opening
+  [[sA, 1], [sA + len, -1]].forEach(([s, dir]) => {
+    trackFrame(s, fr); const Rt = fr.w + 3.4 + 0.9, base = yAt(fr.fi);
+    const sh = new THREE.Shape(), bot = -TUN.off - 8;
+    sh.moveTo(-W, bot); sh.lineTo(W, bot);
+    for (let k = K; k >= 0; k--) { const x = lerp(-W, W, k / K); sh.lineTo(x, -TUN.off + tunProf(x, s)); }
+    sh.lineTo(-W, bot);
+    const hole = new THREE.Path(); hole.moveTo(-Rt, 0.15);
+    for (let k = 0; k <= 24; k++) { const a = Math.PI * (1 - k / 24); hole.lineTo(Math.cos(a) * Rt, 0.15 + Math.sin(a) * (Rt - 0.15)); }
+    hole.lineTo(-Rt, 0.15); sh.holes.push(hole);
+    const sg = new THREE.ShapeGeometry(sh, 12), P2 = sg.attributes.position, c2 = new Float32Array(P2.count * 3);
+    for (let i = 0; i < P2.count; i++) {
+      const x = P2.getX(i), y = P2.getY(i), n = 0.82 + vnoise(x * 0.5, y * 0.25 + s) * 0.14 + vnoise(x * 2.1, y * 0.3) * 0.05;
+      cTmp.copy(cRock).multiplyScalar(n); c2[i * 3] = cTmp.r; c2[i * 3 + 1] = cTmp.g; c2[i * 3 + 2] = cTmp.b;
+    }
+    sg.setAttribute('color', new THREE.BufferAttribute(c2, 3));
+    const m4 = new THREE.Matrix4();
+    const X = new THREE.Vector3(fr.rx * dir * -1 * -1, 0, fr.rz * dir * -1 * -1), Y = new THREE.Vector3(0, 1, 0);
+    // basis: x = right (flipped for the rear cap so the normal faces outward)
+    X.set(fr.rx * dir, 0, fr.rz * dir); const Z = new THREE.Vector3().crossVectors(X, Y);
+    m4.makeBasis(X, Y, Z); m4.setPosition(fr.x, base, fr.z);
+    const cap = new THREE.Mesh(sg, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide, emissive: 0x3a2c1c })); cap.applyMatrix4(m4); cap.matrixAutoUpdate = false; scene.add(cap);
+  });
 }
 
 function buildArch() {
@@ -1962,7 +2045,7 @@ function stepRacer(r, dt) {
   const gy = groundY(r.x, r.z);
   if (r.grounded) {
     const predicted = r.y + r.vy * dt - 0.5 * GRAV * dt * dt;
-    if (gy < predicted - 0.2) {      // ground fell away: take off
+    if (gy < predicted - (0.1 + 6 * dt)) {      // ground fell away: take off
       r.grounded = false; r.air = 0; r.y = predicted; r.vy -= GRAV * dt;
       r.trick.on = false; r.trick.held = !!inp.trick;
     } else {
@@ -2026,7 +2109,7 @@ function stepRacer(r, dt) {
   r.trollAdd = tRollAdd; r.tpitchAdd = tPitchAdd;
   // suspension spring
   r.sv += (-90 * r.sp - 11 * r.sv) * dt; r.sp += r.sv * dt; r.sp = clamp(r.sp, -0.7, 0.4);
-  if (r.grounded && r.spd > 8) r.sv += (Math.random() - 0.5) * (surf === SURF.MUD ? 1.4 : 0.55) * Math.min(1, r.spd / 40);
+  if (r.grounded && r.spd > 8) r.sv += (Math.random() - 0.5) * (surf === SURF.MUD ? 1.4 : 0.55) * Math.min(1, r.spd / 40) * dt * 60;
   r.yawBody = psi;
   r.wheelRot += r.spd * dt / 0.59;
   // --- stuck / wrong way recovery ---
@@ -2229,7 +2312,7 @@ function updateRace(dt) {
     p.x = o.x; p.z = o.z; p.y = groundY(o.x, o.z) + 1.0;
     p.m.position.set(p.x, p.y, p.z); p.m.rotation.y += dt * 14; p.m.rotation.z = Math.sin(GAME.t * 20) * 0.2;
     p.tr.position.set(p.x - Math.sin(o.psi) * Math.sign(p.spd) * 0.6, p.y, p.z - Math.cos(o.psi) * Math.sign(p.spd) * 0.6);
-    PS.a.emit(p.x, p.y, p.z, rr(-1, 1), rr(-1, 1), rr(-1, 1), 0.3, 0.9, 0.1, 1, 0.8, 0.3, 0.8, 0, 1);
+    if (Math.random() < dt * 60) PS.a.emit(p.x, p.y, p.z, rr(-1, 1), rr(-1, 1), rr(-1, 1), 0.3, 0.9, 0.1, 1, 0.8, 0.3, 0.8, 0, 1);
     for (const t of R) {
       if (t === p.owner && p.arm > 0) continue;
       if (Math.hypot(t.x - p.x, t.z - p.z) < 2.3 && Math.abs(t.y + 1 - p.y) < 3) { if (hitRacer(t, 'acorn')) { p.life = 0; break; } }
@@ -2263,35 +2346,36 @@ function animateBoxes(t, dt) {
 }
 
 // ---------- per-racer visual & particle effects ----------
+const emitN = (rate) => { let n = Math.floor(rate); if (Math.random() < rate - n) n++; return n; };
 function effectsForRacer(r, dt) {
   const m = r.model, psi = r.yawBody, sP = Math.sin(psi), cP = Math.cos(psi);
-  const spdA = Math.abs(r.spd);
+  const spdA = Math.abs(r.spd), k60 = dt * 60;
   // dust / mud / grass spray from the rear wheel
   if (r.grounded && spdA > 7) {
-    const rate = Math.min(3, spdA / 22 + (r.drift.on ? 1.2 : 0));
-    let n = Math.floor(rate); if (Math.random() < rate - n) n++;
+    const rate = Math.min(3, spdA / 22 + (r.drift.on ? 1.2 : 0)) * k60;
+    const n = emitN(rate);
     const c = r.surf === SURF.MUD ? MUD_COL : r.surf === SURF.GRASS ? GRASS_COL : DIRT_COL;
     for (let k = 0; k < n; k++) {
       const side = (Math.random() - 0.5) * 0.7;
       const px = r.x - sP * 1.1 + cP * side, pz = r.z - cP * 1.1 - sP * side;
-      const back = -Math.sign(r.spd);
       PS.n.emit(px, r.y + 0.25, pz, -sP * r.spd * 0.18 + rr(-1.2, 1.2) + cP * side * 2, rr(0.8, 2.6), -cP * r.spd * 0.18 + rr(-1.2, 1.2) - sP * side * 2, rr(0.55, 1.0), 0.9, 3.4, c[0], c[1], c[2], r.surf === SURF.MUD ? 0.75 : 0.5, -0.4, 1.6);
     }
-    if (r.surf === SURF.MUD && Math.random() < 0.5) PS.n.emit(r.x - sP * 1.0, r.y + 0.4, r.z - cP * 1.0, rr(-4, 4) - sP * 4, rr(3, 7), rr(-4, 4) - cP * 4, rr(0.5, 0.9), 0.7, 0.5, 0.3, 0.2, 0.1, 0.95, 18, 0.3);
+    if (r.surf === SURF.MUD && Math.random() < 0.5 * k60) PS.n.emit(r.x - sP * 1.0, r.y + 0.4, r.z - cP * 1.0, rr(-4, 4) - sP * 4, rr(3, 7), rr(-4, 4) - cP * 4, rr(0.5, 0.9), 0.7, 0.5, 0.3, 0.2, 0.1, 0.95, 18, 0.3);
   }
   // drift sparks
   if (r.drift.on && r.grounded) {
     const lv = r.drift.lvl, col = lv === 0 ? [1, 0.95, 0.7] : lv === 1 ? [0.2, 0.85, 1] : lv === 2 ? [1, 0.6, 0.1] : [1, 0.3, 0.9];
-    const side = -r.drift.dir;           // sparks fly from the outer rear wheel
-    for (let k = 0; k < 3; k++) {
-      const px = r.x - sP * 0.9 + cP * 0.5 * -side * -1 * 0, pz = r.z - cP * 0.9;
+    const n = emitN(3 * k60);
+    for (let k = 0; k < n; k++) {
+      const px = r.x - sP * 0.9, pz = r.z - cP * 0.9;
       PS.a.emit(px, r.y + 0.2, pz, -sP * r.spd * 0.12 + rr(-3, 3), rr(1, 5), -cP * r.spd * 0.12 + rr(-3, 3), rr(0.2, 0.45), 0.55 + lv * 0.1, 0.1, col[0], col[1], col[2], 1, 14, 1.4);
     }
   }
   // boost flame
   if (r.boostT > 0 || r.boostFlash > 0) {
     m.flame.visible = true; const f = 0.8 + Math.random() * 0.5; m.flame.scale.set(f, f, 0.8 + Math.random() * 0.7);
-    for (let k = 0; k < 2; k++) PS.a.emit(r.x - sP * 1.7 - cP * 0.35, r.y + 1.3, r.z - cP * 1.7 + sP * 0.35, -sP * 6 + rr(-1, 1), rr(-0.5, 1), -cP * 6 + rr(-1, 1), rr(0.25, 0.4), 0.9, 0.1, 1, rr(0.5, 0.8), 0.15, 0.9, 0, 2);
+    const n = emitN(2 * k60);
+    for (let k = 0; k < n; k++) PS.a.emit(r.x - sP * 1.7 - cP * 0.35, r.y + 1.3, r.z - cP * 1.7 + sP * 0.35, -sP * 6 + rr(-1, 1), rr(-0.5, 1), -cP * 6 + rr(-1, 1), rr(0.25, 0.4), 0.9, 0.1, 1, rr(0.5, 0.8), 0.15, 0.9, 0, 2);
   } else m.flame.visible = false;
   // spin-out stars
   m.stars.visible = r.spinT > 0 || r.invT > 1.2 && r.spinDur > 0 && r.spinT > -0.4;
@@ -2361,9 +2445,9 @@ function resetGrid(playerSlot) {
 const $ = (id) => document.getElementById(id);
 const els = {};
 function initDom() {
-  ['stage', 'gl', 'hud', 'itemBox', 'itemCv', 'itemName', 'board', 'lapNum', 'timeTxt', 'mini', 'rankBox', 'rankNum', 'rankSuf', 'rankOf', 'speedNum', 'boostBar', 'msg', 'count', 'wrong', 'speedfx', 'title', 'results', 'help', 'wipe', 'loading', 'loadmsg', 'flash', 'touch', 'ctrls'].forEach((k) => { els[k] = $(k); });
+  ['stage', 'gl', 'hud', 'itemBox', 'itemCv', 'itemName', 'board', 'lapNum', 'timeTxt', 'mini', 'rankBox', 'rankNum', 'rankSuf', 'rankOf', 'speedNum', 'boostBar', 'msg', 'count', 'wrong', 'speedfx', 'title', 'ctrlsL', 'pause', 'results', 'help', 'wipe', 'loading', 'loadmsg', 'flash', 'touch', 'ctrls'].forEach((k) => { els[k] = $(k); });
   els.boostFill = els.boostBar.querySelector('i');
-  els.ctrls.innerHTML = '<span class="k"><kbd>↑</kbd>アクセル</span><span class="k"><kbd>↓</kbd>ブレーキ</span><span class="k"><kbd>←</kbd><kbd>→</kbd>ハンドル</span><span class="k"><kbd>Shift</kbd>ドリフト・トリック</span><span class="k"><kbd>Space</kbd>アイテム</span><span class="k"><kbd>H</kbd>ヘルプ</span><span class="k"><kbd>M</kbd>音</span>';
+  els.ctrls.innerHTML = '<span class="k"><kbd>↑</kbd>アクセル</span><span class="k"><kbd>↓</kbd>ブレーキ</span><span class="k"><kbd>←</kbd><kbd>→</kbd>ハンドル</span><span class="k"><kbd>Shift</kbd>ドリフト・トリック</span><span class="k"><kbd>Space</kbd>アイテム</span><span class="k opt"><kbd>H</kbd>ヘルプ</span><span class="k opt"><kbd>M</kbd>音</span>';
   els.board.innerHTML = CHARS.map(() => '<div class="brow"><b></b><i class="dot"></i><span></span></div>').join('');
   els.rows = Array.from(els.board.children);
 }
@@ -2664,12 +2748,22 @@ function updateDemo(dt) {
   }
 }
 
+// ---------- controls hint / pause ----------
+function setCtrls(mode) {   // 'title' | 'race' | 'off'
+  els.ctrlsL.classList.toggle('off', mode === 'off'); els.ctrlsL.classList.toggle('race', mode !== 'title');
+}
+function setPaused(on) {
+  if (GAME.paused === on) return;
+  GAME.paused = on; els.pause.style.display = on ? 'block' : 'none';
+  if (AU.ctx) { if (on) AU.ctx.suspend(); else AU.ctx.resume(); }
+}
+
 // ---------- race flow ----------
 function setHud(on) { els.hud.classList.toggle('on', on); }
 function enterTitle(first) {
   GAME.state = 'title'; GAME.timeScale = 1; GAME.demoActive = true;
   els.title.classList.remove('off'); els.results.style.display = 'none'; els.help.style.display = 'none';
-  setHud(true); els.hud.classList.add('tm');
+  setHud(true); els.hud.classList.add('tm'); setCtrls('title'); setPaused(false);
   els.count.innerHTML = '';
   GAME.player.isPlayer = true; GAME.player.auto = true;
   GAME.demo.switching = 0;
@@ -2683,14 +2777,14 @@ function startRace() {
   GAME.state = 'starting';
   doWipe(() => {
     els.title.classList.add('off'); els.results.style.display = 'none'; els.help.style.display = 'none'; els.hud.classList.remove('tm');
-    GAME.demoActive = false;
+    GAME.demoActive = false; setPaused(false);
     const p = GAME.player; p.isPlayer = true; p.auto = false; p.ai.tricks = false;
     GAME.timeScale = 1; GAME.finalLap = false;
     resetGrid(GRID_SLOT_PLAYER);
     for (const r of GAME.racers) r.ai.startDelay = 0.1 + Math.random() * 0.45;
     GAME.state = 'countdown'; GAME.count = 3.9; GAME.startThrT = -1; GAME.lastCountShown = 4;
     resetCamera(); els.msg.innerHTML = ''; showCount('');
-    setHud(true);
+    setHud(true); setCtrls('race');
   });
 }
 function updateCountdown(dt) {
@@ -2704,6 +2798,7 @@ function updateCountdown(dt) {
   }
   if (c <= 0) {
     GAME.state = 'race'; GAME.raceT = 0; showCount('GO!'); AU.sfx('go', 1); flash(0.35);
+    setTimeout(() => { if (GAME.state === 'race' || GAME.state === 'finish') setCtrls('off'); }, 9000);
     setTimeout(() => { if (GAME.state === 'race') showCount(''); }, 900);
     if (GAME.startThrT >= 0 && GAME.startThrT < 0.8) { startBoost(p, 1.1, 1.42); p.boostFlash = 0.4; uiMsg('ロケットスタート！', 'm'); AU.sfx('boost', 0.8); }
   }
@@ -2717,6 +2812,13 @@ function onPlayerFinish(r) {
   setTimeout(() => showCount(''), 2400);
   for (let i = 0; i < 160; i++) PS.a.emit(r.x + rr(-8, 8), r.y + rr(4, 16), r.z + rr(-8, 8), rr(-6, 6), rr(-3, 6), rr(-6, 6), rr(1.2, 2.4), 1.1, 0.7, rr(0.4, 1), rr(0.4, 1), rr(0.4, 1), 1, 6, 0.5);
 }
+function bestTime(set) {
+  try {
+    const k = 'acorn-dirt-gp-best-v1', cur = parseFloat(localStorage.getItem(k));
+    if (set !== undefined && (!(cur > 0) || set < cur)) { localStorage.setItem(k, String(set)); return { best: set, rec: true }; }
+    return { best: cur > 0 ? cur : 0, rec: false };
+  } catch (e) { return { best: 0, rec: false }; }
+}
 function showResults() {
   GAME.state = 'results';
   const ord = GAME.order.slice(), me = GAME.player;
@@ -2725,6 +2827,8 @@ function showResults() {
     const tm = r.finished ? fmtTime(r.finishTime) : '--:--.--';
     html += '<div class="row' + (r.isPlayer ? ' me' : '') + '"><b>' + (i + 1) + ORD[i + 1] + '</b><i class="dot" style="background:' + r.ch.css + '"></i><span class="nm">' + r.ch.name + '</span><span class="tm">' + tm + '</span></div>';
   });
+  const bt = me.finished ? bestTime(me.finishTime) : bestTime();
+  if (bt.best > 0) html += '<div class="best">' + (bt.rec ? '🏆 NEW RECORD！ ' : 'BEST ') + fmtTime(bt.best) + '</div>';
   html += '<div class="hint">Enter：もう一度走る　／　Esc：タイトルへ</div></div>';
   els.results.innerHTML = html; els.results.style.display = 'block';
   AU.sfx('ui', 0.8);
@@ -2744,27 +2848,29 @@ function initInput() {
     if (e.repeat || wasDown) return;
     if (GAME.state === 'title') { if (!/^(F\d+|Tab|Meta|Control|Alt|CapsLock|PrintScreen)$/.test(code) && code !== 'KeyM' && code !== 'KeyH' && code !== 'KeyQ' && code !== 'KeyF') startRace(); }
     if (code === 'KeyM') { AU.init(); AU.setMuted(!AU.muted); uiMsg(AU.muted ? 'SOUND OFF' : 'SOUND ON', 'm'); }
-    if (code === 'KeyH') { const on = els.help.style.display !== 'block'; els.help.style.display = on ? 'block' : 'none'; GAME.paused = on && GAME.state !== 'title'; }
-    if (code === 'KeyP' && (GAME.state === 'race' || GAME.state === 'countdown')) { GAME.paused = !GAME.paused; uiMsg(GAME.paused ? 'PAUSE' : '', 'm'); }
+    if (code === 'KeyH') { const on = els.help.style.display !== 'block'; els.help.style.display = on ? 'block' : 'none'; setPaused(on && GAME.state !== 'title'); }
+    if (code === 'KeyP' && (GAME.state === 'race' || GAME.state === 'countdown' || GAME.state === 'finish')) { setPaused(!GAME.paused); }
     if (code === 'KeyF') { const d = document, el = d.documentElement; if (!d.fullscreenElement) { (el.requestFullscreen || el.webkitRequestFullscreen || function () {}).call(el); } else { (d.exitFullscreen || d.webkitExitFullscreen || function () {}).call(d); } }
     if (code === 'KeyQ') cycleQuality();
-    if (code === 'Escape') { if (els.help.style.display === 'block') { els.help.style.display = 'none'; GAME.paused = false; } else if (GAME.state !== 'title' && GAME.state !== 'starting') { GAME.paused = false; GAME.state = 'starting'; doWipe(() => enterTitle()); } }
+    if (code === 'Escape') { if (els.help.style.display === 'block') { els.help.style.display = 'none'; setPaused(false); } else if (GAME.paused) { setPaused(false); } else if (GAME.state !== 'title' && GAME.state !== 'starting') { GAME.state = 'starting'; doWipe(() => enterTitle()); } }
     if (code === 'Enter' && GAME.state === 'results') { startRace(); }
     if (code === 'KeyR' && (GAME.state === 'race' || GAME.state === 'finish' || GAME.state === 'results' || GAME.state === 'countdown')) { startRace(); }
     if (GAME.state === 'results' && code !== 'Enter' && code !== 'Escape' && GAME.resultsT > 1.2 && code === 'Space') startRace();
   });
   window.addEventListener('keyup', (e) => { KEYS[e.code] = false; });
-  window.addEventListener('blur', () => { for (const k in KEYS) KEYS[k] = false; });
+  window.addEventListener('blur', () => { for (const k in KEYS) KEYS[k] = false; if (GAME.state === 'race' || GAME.state === 'countdown') setPaused(true); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && (GAME.state === 'race' || GAME.state === 'countdown')) setPaused(true); });
   const st = els.stage;
   const tdown = (e) => {
-    if (e.pointerType === 'touch' || e.type === 'touchstart') { TOUCH.on = true; els.touch.style.display = 'block'; }
+    if (e.pointerType === 'touch' || e.type === 'touchstart') { TOUCH.on = true; els.touch.style.display = 'block'; els.stage.classList.add('touch'); }
     if (GAME.state === 'title' && (e.target === els.stage || e.target === els.gl || e.target.closest && e.target.closest('#title'))) startRace();
   };
   st.addEventListener('pointerdown', tdown);
   const bind = (id, key) => { const el = $(id); const on = (v) => (e) => { e.preventDefault(); TOUCH[key] = v; el.classList.toggle('on', v); }; el.addEventListener('pointerdown', on(true)); el.addEventListener('pointerup', on(false)); el.addEventListener('pointercancel', on(false)); el.addEventListener('pointerleave', on(false)); };
   bind('tbL', 'l'); bind('tbR', 'r'); bind('tbD', 'd'); bind('tbI', 'i');
   els.results.addEventListener('pointerdown', () => { if (GAME.state === 'results' && GAME.resultsT > 1) startRace(); });
-  els.help.addEventListener('pointerdown', () => { els.help.style.display = 'none'; GAME.paused = false; });
+  els.help.addEventListener('pointerdown', () => { els.help.style.display = 'none'; setPaused(false); });
+  els.pause.style.pointerEvents = 'auto'; els.pause.addEventListener('pointerdown', () => setPaused(false));
   els.help.innerHTML = '<div class="panel"><h3>あそびかた</h3>' +
     '<div><kbd>↑</kbd>アクセル　<kbd>↓</kbd>ブレーキ／バック　<kbd>←</kbd><kbd>→</kbd>ハンドル</div>' +
     '<div><kbd>Shift</kbd>を押しながらカーブ → <b>ドリフト</b>！ 火花が <b style="color:#1aa9d9">青</b>→<b style="color:#e8890a">橙</b>→<b style="color:#d6309e">桃</b> に変わったら離すとターボ</div>' +
@@ -2781,8 +2887,8 @@ function applyQuality() {
   const base = clamp(k * dpr, 0.8, 2);
   const pr = [0.7, 1, 1.25][Q.level] ? Math.min(base, [0.75, 1, 1.5][Q.level]) : 1;
   Q.pixelRatio = pr; renderer.setPixelRatio(pr); renderer.setSize(W, H, false);
-  Q.shadows = Q.level >= 1; renderer.shadowMap.enabled = Q.shadows; sun.castShadow = Q.shadows;
-  scene.traverse((o) => { if (o.material && o.material.needsUpdate !== undefined) o.material.needsUpdate = true; });
+  const shNew = Q.level >= 1;
+  if (Q._sh !== shNew) { Q._sh = shNew; Q.shadows = shNew; renderer.shadowMap.enabled = shNew; sun.castShadow = shNew; scene.traverse((o) => { if (o.material && o.material.needsUpdate !== undefined) o.material.needsUpdate = true; }); }
   const sz = Q.level >= 2 ? 2048 : 1024; if (sun.shadow.mapSize.x !== sz) { sun.shadow.mapSize.set(sz, sz); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } }
   if (PS.n) { PS.n.points.visible = true; }
 }
@@ -2842,9 +2948,8 @@ function frame(now) {
   qTimer += dt; if (qTimer > 4) { qTimer = 0; if (emaDt > 31 && Q.level > 0) { Q.level--; applyQuality(); emaDt = 20; } }
   pollGamepad();
   if (!GAME.paused) {
-    acc += dt * GAME.timeScale; let n = 0;
-    while (acc >= STEP && n < 5) { simStep(STEP); acc -= STEP; n++; }
-    if (n >= 5) acc = 0;
+    let rem = dt * GAME.timeScale, n = 0;
+    while (rem > 1e-5 && n < 6) { const h = Math.min(rem, 1 / 50); simStep(h); rem -= h; n++; }
   }
   frameUpdate(dt);
   renderer.render(scene, camera);
@@ -2853,6 +2958,9 @@ function frame(now) {
 const tick = () => new Promise((res) => requestAnimationFrame(() => setTimeout(res, 0)));
 function setLoad(p, msg) { els.loadmsg.textContent = msg; els.loading.querySelector('#loadbar i').style.width = Math.round(p * 100) + '%'; }
 async function boot() {
+  try { await boot2(); } catch (e) { console.error(e); const m = document.getElementById('loadmsg'); if (m) m.textContent = 'うまく起動できませんでした（WebGL が使えない可能性があります）: ' + (e && e.message ? e.message : e); }
+}
+async function boot2() {
   initDom();
   setLoad(0.05, 'じゅんび中…'); await tick();
   initGL(els.gl);
@@ -2884,9 +2992,10 @@ async function boot() {
   window.__g = {
     GAME, TR, FEAT, HF, CAM, KEYS, camera, scene, renderer, Q, PS, AU,
     stepN(n) { for (let i = 0; i < n; i++) simStep(STEP); },
+    stepDt(h, n) { for (let i = 0; i < n; i++) simStep(h); },
     shot() { frameUpdate(0.016); renderer.render(scene, camera); },
     fu(dt) { frameUpdate(dt || 1 / 60); },
-    startRace, enterTitle, startDemoScene, trackFrame, groundY, sNear, aiControl, placeRacer, rankRacers,
+    startRace, enterTitle, startDemoScene, trackFrame, groundY, sNear, aiControl, placeRacer, rankRacers, useItem, hitRacer,
   };
 }
 boot();
@@ -2903,12 +3012,15 @@ boot();
   var i = 0;
   function msg(t) { var el = document.getElementById('loadmsg'); if (el) el.textContent = t; }
   function fit() {
-    var st = document.getElementById('stage'), k = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    var st = document.getElementById('stage'), de = document.documentElement;
+    var vw = de.clientWidth || window.innerWidth, vh = de.clientHeight || window.innerHeight;
+    var k = Math.min(vw / 1280, vh / 720);
     st.style.transform = 'scale(' + k + ')';
-    st.style.left = Math.round((window.innerWidth - 1280 * k) / 2) + 'px';
-    st.style.top = Math.round((window.innerHeight - 720 * k) / 2) + 'px';
+    st.style.left = Math.round((vw - 1280 * k) / 2) + 'px';
+    st.style.top = Math.round((vh - 720 * k) / 2) + 'px';
   }
-  fit(); window.addEventListener('resize', fit);
+  fit(); window.addEventListener('resize', fit); window.addEventListener('orientationchange', function () { setTimeout(fit, 200); });
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
   function boot() {
     try { startGame(); }
     catch (e) { console.error(e); msg('エラーが発生しました: ' + (e && e.message ? e.message : e)); }
