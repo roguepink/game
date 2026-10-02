@@ -2,20 +2,20 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<title>Acorn Dirt GP</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="description" content="3Dで遊べる山道オフロードバイクレース。HTML1枚・外部ファイルなし。開くと自動デモ、キーボードで遊べます。">
+<title>Acorn Dirt GP</title>
 <style>
+/* One-screen game: a fixed 1280x720 stage scaled to fit, on a dark ground. Single look, so no light variant. */
 :root{
+  color-scheme:dark;
   --bg:#0b0e16; --ink:#2a1608; --pop-yellow:#ffd23f; --pop-red:#ff4b3a; --pop-blue:#2fa8ff; --pop-green:#47d16c; --pop-orange:#ff8a1f; --pop-pink:#ff6fb1;
   --font:"Arial Rounded MT Bold","Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic UI","Meiryo","Noto Sans JP","WenQuanYi Zen Hei",system-ui,sans-serif;
 }
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#05070b; } }
-:root[data-theme="dark"]{ --bg:#05070b; }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);overflow:hidden;overscroll-behavior:none}
-#wrap{position:fixed;left:0;top:0;width:100%;height:100%;overflow:hidden}
-body{font-family:var(--font);font-weight:800;color:#fff}
+body{position:relative;font-family:var(--font);font-weight:800;color:#fff}
+#wrap{position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden}
 #stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;overflow:hidden;background:#bfe6ff;user-select:none;-webkit-user-select:none;touch-action:none}
 #gl{position:absolute;left:0;top:0;width:1280px;height:720px;display:block}
 .layer{position:absolute;left:0;top:0;width:1280px;height:720px;pointer-events:none}
@@ -123,7 +123,7 @@ body{font-family:var(--font);font-weight:800;color:#fff}
 #loadbar{width:420px;height:20px;border-radius:10px;background:rgba(0,0,0,.25);border:4px solid #fff;overflow:hidden}
 #loadbar i{display:block;height:100%;width:0;background:#fff;transition:width .2s}
 /* ---- rotate hint (portrait phones) ---- */
-#rotate{display:none;position:fixed;inset:0;z-index:99;background:#ff9a1f;color:#fff;align-items:center;justify-content:center;flex-direction:column;gap:14px;font-size:30px;text-align:center;padding:20px}
+#rotate{display:none;position:absolute;left:0;top:0;right:0;bottom:0;z-index:99;background:#ff9a1f;color:#fff;align-items:center;justify-content:center;flex-direction:column;gap:14px;font-size:30px;text-align:center;padding:20px}
 #rotate b{font-size:64px}
 @media (orientation:portrait) and (max-width:900px){#rotate{display:flex}}
 /* ---- touch ---- */
@@ -1629,7 +1629,7 @@ class Particles {
     this.uScale = { value: 800 };
     const mat = new THREE.ShaderMaterial({
       uniforms: { map: { value: TEX.soft }, uScale: this.uScale },
-      vertexShader: 'attribute vec4 aColor; attribute float aSize; uniform float uScale; varying vec4 vColor; void main(){ vColor = aColor; vec4 mv = modelViewMatrix * vec4(position,1.0); gl_PointSize = aSize * uScale / max(-mv.z, 0.2); gl_Position = projectionMatrix * mv; }',
+      vertexShader: 'attribute vec4 aColor; attribute float aSize; uniform float uScale; varying vec4 vColor; void main(){ vColor = aColor; vec4 mv = modelViewMatrix * vec4(position,1.0); gl_PointSize = min(aSize * uScale / max(-mv.z, 0.2), 110.0); gl_Position = projectionMatrix * mv; }',
       fragmentShader: 'uniform sampler2D map; varying vec4 vColor; void main(){ float a = vColor.a * texture2D(map, gl_PointCoord).a; if (a < 0.01) discard; gl_FragColor = vec4(vColor.rgb, a); }',
       transparent: true, depthWrite: false, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending,
     });
@@ -2202,8 +2202,12 @@ function readPlayerInput(r) {
   if (r.stuckT > 0 && inp.thr === 0) r.stuckT = 0;
 }
 const TOUCH = { on: false, l: false, r: false, d: false, i: false };
+let padBroken = false;
 function pollGamepad() {
-  const gps = navigator.getGamepads ? navigator.getGamepads() : []; padState.active = false;
+  if (padBroken) return;
+  let gps = [];
+  try { gps = navigator.getGamepads ? navigator.getGamepads() : []; } catch (e) { padBroken = true; padState.active = false; return; }
+  padState.active = false;
   for (const g of gps) {
     if (!g || !g.connected) continue;
     padState.active = true;
@@ -2850,7 +2854,7 @@ function initInput() {
     if (code === 'KeyM') { AU.init(); AU.setMuted(!AU.muted); uiMsg(AU.muted ? 'SOUND OFF' : 'SOUND ON', 'm'); }
     if (code === 'KeyH') { const on = els.help.style.display !== 'block'; els.help.style.display = on ? 'block' : 'none'; setPaused(on && GAME.state !== 'title'); }
     if (code === 'KeyP' && (GAME.state === 'race' || GAME.state === 'countdown' || GAME.state === 'finish')) { setPaused(!GAME.paused); }
-    if (code === 'KeyF') { const d = document, el = d.documentElement; if (!d.fullscreenElement) { (el.requestFullscreen || el.webkitRequestFullscreen || function () {}).call(el); } else { (d.exitFullscreen || d.webkitExitFullscreen || function () {}).call(d); } }
+    if (code === 'KeyF') { try { const d = document, el = d.documentElement; const r = !d.fullscreenElement ? (el.requestFullscreen || el.webkitRequestFullscreen || function () {}).call(el) : (d.exitFullscreen || d.webkitExitFullscreen || function () {}).call(d); if (r && r.catch) r.catch(() => {}); } catch (err) { /* fullscreen is optional */ } }
     if (code === 'KeyQ') cycleQuality();
     if (code === 'Escape') { if (els.help.style.display === 'block') { els.help.style.display = 'none'; setPaused(false); } else if (GAME.paused) { setPaused(false); } else if (GAME.state !== 'title' && GAME.state !== 'starting') { GAME.state = 'starting'; doWipe(() => enterTitle()); } }
     if (code === 'Enter' && GAME.state === 'results') { startRace(); }
@@ -2858,6 +2862,7 @@ function initInput() {
     if (GAME.state === 'results' && code !== 'Enter' && code !== 'Escape' && GAME.resultsT > 1.2 && code === 'Space') startRace();
   });
   window.addEventListener('keyup', (e) => { KEYS[e.code] = false; });
+  ['pointerup', 'touchend', 'click', 'keydown'].forEach((ev) => window.addEventListener(ev, () => { if (AU.ctx && AU.ctx.state === 'suspended' && !GAME.paused) AU.ctx.resume(); }, { passive: true }));
   window.addEventListener('blur', () => { for (const k in KEYS) KEYS[k] = false; if (GAME.state === 'race' || GAME.state === 'countdown') setPaused(true); });
   document.addEventListener('visibilitychange', () => { if (document.hidden && (GAME.state === 'race' || GAME.state === 'countdown')) setPaused(true); });
   const st = els.stage;
@@ -2873,9 +2878,9 @@ function initInput() {
   els.pause.style.pointerEvents = 'auto'; els.pause.addEventListener('pointerdown', () => setPaused(false));
   els.help.innerHTML = '<div class="panel"><h3>あそびかた</h3>' +
     '<div><kbd>↑</kbd>アクセル　<kbd>↓</kbd>ブレーキ／バック　<kbd>←</kbd><kbd>→</kbd>ハンドル</div>' +
-    '<div><kbd>Shift</kbd>を押しながらカーブ → <b>ドリフト</b>！ 火花が <b style="color:#1aa9d9">青</b>→<b style="color:#e8890a">橙</b>→<b style="color:#d6309e">桃</b> に変わったら離すとターボ</div>' +
+    '<div><kbd>Shift</kbd>（<kbd>Z</kbd> / <kbd>C</kbd>）を押しながらカーブ → <b>ドリフト</b>！ 火花が <b style="color:#1aa9d9">青</b>→<b style="color:#e8890a">橙</b>→<b style="color:#d6309e">桃</b> に変わったら離すとターボ</div>' +
     '<div>ジャンプ中に <kbd>Shift</kbd> で<b>トリック</b> → 着地でブースト</div>' +
-    '<div><kbd>Space</kbd> アイテム（おにぎりターボ / どんぐりショット / どろだんご）</div>' +
+    '<div><kbd>Space</kbd>（<kbd>X</kbd>）アイテム：おにぎりターボ / どんぐりショット / どろだんご</div>' +
     '<div>青いパッドでダッシュ・泥はスピードダウン・コース外の草も遅くなります</div>' +
     '<div style="text-align:center;font-size:22px;opacity:.7;margin-top:6px"><kbd>H</kbd> 閉じる　<kbd>M</kbd> サウンド　<kbd>P</kbd> ポーズ　<kbd>R</kbd> リスタート　<kbd>Esc</kbd> タイトル</div></div>';
 }
@@ -3012,8 +3017,8 @@ boot();
   var i = 0;
   function msg(t) { var el = document.getElementById('loadmsg'); if (el) el.textContent = t; }
   function fit() {
-    var st = document.getElementById('stage'), de = document.documentElement;
-    var vw = de.clientWidth || window.innerWidth, vh = de.clientHeight || window.innerHeight;
+    var st = document.getElementById('stage'), wr = document.getElementById('wrap');
+    var vw = wr.clientWidth || window.innerWidth, vh = wr.clientHeight || window.innerHeight;
     var k = Math.min(vw / 1280, vh / 720);
     st.style.transform = 'scale(' + k + ')';
     st.style.left = Math.round((vw - 1280 * k) / 2) + 'px';
@@ -3021,6 +3026,7 @@ boot();
   }
   fit(); window.addEventListener('resize', fit); window.addEventListener('orientationchange', function () { setTimeout(fit, 200); });
   if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(document.getElementById('wrap'));
   function boot() {
     try { startGame(); }
     catch (e) { console.error(e); msg('エラーが発生しました: ' + (e && e.message ? e.message : e)); }
