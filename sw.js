@@ -1,5 +1,5 @@
 // Offline cache: app shell is precached, three.js (CDN) is cached on first successful load.
-const VER = 'acorn-gp-v2';
+const VER = 'acorn-gp-v3';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/maskable-512.png', './icons/apple-touch-icon.png', './vendor/three.min.js'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(VER).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => {
