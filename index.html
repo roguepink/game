@@ -23,10 +23,10 @@
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);overflow:hidden;overscroll-behavior:none}
 body{position:relative;font-family:var(--font);font-weight:800;color:#fff}
-#wrap{position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden}
-#stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;overflow:hidden;background:#bfe6ff;user-select:none;-webkit-user-select:none;touch-action:none}
-#gl{position:absolute;left:0;top:0;width:1280px;height:720px;display:block}
-.layer{position:absolute;left:0;top:0;width:1280px;height:720px;pointer-events:none}
+#wrap{position:absolute;left:env(safe-area-inset-left,0px);top:0;right:env(safe-area-inset-right,0px);bottom:0;overflow:hidden}
+#stage{position:absolute;left:0;top:0;width:var(--sw,1280px);height:720px;transform-origin:0 0;overflow:hidden;background:#bfe6ff;user-select:none;-webkit-user-select:none;touch-action:none}
+#gl{position:absolute;left:0;top:0;width:var(--sw,1280px);height:720px;display:block}
+.layer{position:absolute;left:0;top:0;width:var(--sw,1280px);height:720px;pointer-events:none}
 .pop{color:#fff;-webkit-text-stroke:7px var(--ink);paint-order:stroke fill;text-shadow:0 5px 0 var(--ink),0 9px 14px rgba(0,0,0,.35);letter-spacing:.02em}
 /* ---- HUD ---- */
 #hud{opacity:0;transition:opacity .4s}
@@ -65,13 +65,13 @@ body{position:relative;font-family:var(--font);font-weight:800;color:#fff}
 #speedUnit{font-size:28px;margin-left:8px}
 #boostBar{width:250px;height:18px;margin:8px 0 0 auto;border-radius:9px;background:rgba(18,28,58,.6);border:3px solid #fff;overflow:hidden}
 #boostBar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#35d8ff,#ffe94a,#ff7a1a);transition:width .08s}
-#msg{position:absolute;left:0;top:132px;width:1280px;text-align:center}
+#msg{position:absolute;left:0;top:132px;width:var(--sw,1280px);text-align:center}
 #msg .m{display:block;font-size:66px;animation:mpop 1.1s both;margin-bottom:-6px}
 @keyframes mpop{0%{transform:scale(.3) rotate(-8deg);opacity:0}15%{transform:scale(1.25) rotate(3deg);opacity:1}30%{transform:scale(1) rotate(0)}80%{opacity:1}100%{transform:translateY(-30px) scale(1);opacity:0}}
-#count{position:absolute;left:0;top:150px;width:1280px;text-align:center;font-size:280px;line-height:1}
+#count{position:absolute;left:0;top:150px;width:var(--sw,1280px);text-align:center;font-size:280px;line-height:1}
 #count .c{display:inline-block;animation:cpop .95s both}
 @keyframes cpop{0%{transform:scale(2.2);opacity:0}25%{transform:scale(1);opacity:1}80%{opacity:1}100%{transform:scale(.7);opacity:0}}
-#wrong{position:absolute;left:0;top:250px;width:1280px;text-align:center;font-size:90px;color:#ff4b3a;display:none;animation:blink .45s infinite alternate}
+#wrong{position:absolute;left:0;top:250px;width:var(--sw,1280px);text-align:center;font-size:90px;color:#ff4b3a;display:none;animation:blink .45s infinite alternate}
 @keyframes blink{from{opacity:1}to{opacity:.25}}
 #speedfx{position:absolute;left:-260px;top:-540px;width:1800px;height:1800px;pointer-events:none;opacity:0;transition:opacity .15s;
   background:repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,0) 0deg 3.2deg, rgba(255,255,255,.62) 3.5deg 3.8deg, rgba(255,255,255,0) 4.1deg 7.3deg);
@@ -93,12 +93,12 @@ body{position:relative;font-family:var(--font);font-weight:800;color:#fff}
 #title{transition:opacity .35s}
 #title.off{opacity:0}
 #titleShade{position:absolute;left:0;right:0;bottom:0;height:230px;background:linear-gradient(to top,rgba(10,14,40,.72),rgba(10,14,40,0))}
-#logoWrap{position:absolute;left:0;top:18px;width:1280px;text-align:center;transform:rotate(-2deg)}
+#logoWrap{position:absolute;left:0;top:18px;width:var(--sw,1280px);text-align:center;transform:rotate(-2deg)}
 #logoSub{font-size:26px;letter-spacing:.34em;color:#fff;-webkit-text-stroke:5px var(--ink);paint-order:stroke fill;text-shadow:0 3px 0 var(--ink)}
 #logo{font-size:104px;line-height:.95;display:inline-block;background:linear-gradient(#fff6b0,#ffc02a 50%,#ff6a1a);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:0;filter:drop-shadow(4px 0 0 var(--ink)) drop-shadow(-4px 0 0 var(--ink)) drop-shadow(0 4px 0 var(--ink)) drop-shadow(0 -4px 0 var(--ink)) drop-shadow(0 10px 0 var(--ink)) drop-shadow(0 14px 14px rgba(0,0,0,.35));position:relative}
 #logo span{display:inline-block}
 #logoJp{margin-top:-2px;font-size:30px}
-#pressKey{position:absolute;left:0;bottom:78px;width:1280px;text-align:center;font-size:58px;animation:pk 1s infinite alternate}
+#pressKey{position:absolute;left:0;bottom:78px;width:var(--sw,1280px);text-align:center;font-size:58px;animation:pk 1s infinite alternate}
 #pressKey small{display:block;font-size:24px;margin-top:6px;-webkit-text-stroke:5px var(--ink);paint-order:stroke fill}
 @keyframes pk{from{transform:scale(1)}to{transform:scale(1.06)}}
 #ctrlsL{transition:opacity .5s}
@@ -106,7 +106,7 @@ body{position:relative;font-family:var(--font);font-weight:800;color:#fff}
 #ctrlsL.race #ctrls{bottom:auto;top:18px;left:176px;width:890px;font-size:15px;gap:6px}
 #ctrlsL.race .opt{display:none}
 #pause{display:none;background:rgba(10,14,40,.45)}
-#pause .pbox{position:absolute;left:0;top:250px;width:1280px;text-align:center;font-size:130px}
+#pause .pbox{position:absolute;left:0;top:250px;width:var(--sw,1280px);text-align:center;font-size:130px}
 #pause small{display:block;font-size:34px;-webkit-text-stroke:5px var(--ink);paint-order:stroke fill}
 #ctrls{position:absolute;left:0;bottom:16px;width:1280px;text-align:center;font-size:17px;display:flex;justify-content:center;gap:9px;flex-wrap:nowrap;white-space:nowrap;text-shadow:0 2px 0 rgba(0,0,0,.55)}
 #ctrls .k{display:inline-flex;align-items:center;gap:6px;background:rgba(18,28,58,.62);padding:5px 12px 5px 7px;border-radius:999px;border:2px solid rgba(255,255,255,.55)}
@@ -114,7 +114,7 @@ body{position:relative;font-family:var(--font);font-weight:800;color:#fff}
 #soundHint{position:absolute;right:22px;top:352px;font-size:17px;opacity:.9;display:none}
 /* ---- results ---- */
 #results{display:none;background:rgba(10,14,40,.55);pointer-events:auto}
-#results .panel{position:absolute;left:300px;top:60px;width:680px;padding:26px 36px 24px;border-radius:34px;background:linear-gradient(#fff9e0,#ffe9a6);color:#3a2408;border:8px solid #fff;box-shadow:0 14px 0 rgba(60,30,0,.4);animation:panelin .5s both}
+#results .panel{position:absolute;left:calc(var(--sw,1280px)/2 - 340px);top:60px;width:680px;padding:26px 36px 24px;border-radius:34px;background:linear-gradient(#fff9e0,#ffe9a6);color:#3a2408;border:8px solid #fff;box-shadow:0 14px 0 rgba(60,30,0,.4);animation:panelin .5s both}
 @keyframes panelin{from{transform:translateY(-60px) scale(.8);opacity:0}to{transform:none;opacity:1}}
 #results h2{margin:0 0 10px;font-size:60px;text-align:center}
 #results .row{display:flex;align-items:center;gap:14px;height:46px;margin:5px 0;padding:0 18px;border-radius:26px;background:rgba(255,255,255,.7);font-size:28px}
@@ -127,7 +127,7 @@ body{position:relative;font-family:var(--font);font-weight:800;color:#fff}
 #results .hint{margin-top:14px;text-align:center;font-size:22px;opacity:.85}
 /* ---- help / pause ---- */
 #help{display:none;background:rgba(10,14,40,.7);pointer-events:auto}
-#help .panel{position:absolute;left:150px;top:40px;width:980px;padding:22px 44px 20px;border-radius:30px;background:#fff;color:#2a1608;border:8px solid #ffb300;font-size:23px;line-height:1.68;font-weight:800}
+#help .panel{position:absolute;left:calc(var(--sw,1280px)/2 - 490px);top:40px;width:980px;padding:22px 44px 20px;border-radius:30px;background:#fff;color:#2a1608;border:8px solid #ffb300;font-size:23px;line-height:1.68;font-weight:800}
 #help h3{margin:0 0 8px;font-size:44px;text-align:center}
 #help kbd{background:#2a1608;color:#fff;border-radius:8px;padding:2px 12px;margin:0 4px;font-family:inherit}
 /* ---- wipe / loading ---- */
@@ -196,7 +196,7 @@ function startGame(){
 'use strict';
 // ---------- 10_util.js ----------
 // ===================== Utilities =====================
-const W = 1280, H = 720;
+let W = window.__SW || 1280; const H = 720;   // W grows on wide screens (see fit())
 const TAU = Math.PI * 2;
 const LAPS = 3;
 const DS = 2;          // track sample spacing
@@ -737,6 +737,7 @@ function initGL(canvas) {
   scene = new THREE.Scene();
   scene.fog = new THREE.Fog(FOG_COL, 230, 900);
   camera = new THREE.PerspectiveCamera(62, W / H, 0.5, 4200);
+  window.__onStageW = (sw) => { W = sw; renderer.setSize(W, H, false); camera.aspect = W / H; camera.updateProjectionMatrix(); };
   hemi = new THREE.HemisphereLight(0xdff2ff, 0x9a8a55, 0.78);
   scene.add(hemi);
   sun = new THREE.DirectionalLight(0xfff0d0, 0.78);
@@ -3512,9 +3513,20 @@ function initInput() {
   ['pointerup', 'touchend', 'click', 'keydown'].forEach((ev) => window.addEventListener(ev, () => { if (AU.ctx && AU.ctx.state === 'suspended' && !GAME.paused) AU.ctx.resume(); }, { passive: true }));
   window.addEventListener('blur', () => { for (const k in KEYS) KEYS[k] = false; if (GAME.state === 'race' || GAME.state === 'countdown') setPaused(true); });
   document.addEventListener('visibilitychange', () => { if (document.hidden && (GAME.state === 'race' || GAME.state === 'countdown')) setPaused(true); });
+  // phones: first tap goes fullscreen + landscape where the browser allows it (Android Chrome; iPhone Safari does not)
+  const goFullscreen = () => {
+    const d = document, el = d.documentElement;
+    if (d.fullscreenElement || d.webkitFullscreenElement) return;
+    try {
+      const fs = el.requestFullscreen || el.webkitRequestFullscreen; if (!fs) return;
+      const r = fs.call(el, { navigationUI: 'hide' });
+      const lock = () => { try { const p = screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape'); if (p && p.catch) p.catch(() => {}); } catch (err) { /* optional */ } };
+      if (r && r.then) r.then(lock, () => {}); else lock();
+    } catch (err) { /* fullscreen is optional */ }
+  };
   const st = els.stage;
   const tdown = (e) => {
-    if (e.pointerType === 'touch' || e.type === 'touchstart') { TOUCH.on = true; els.touch.style.display = 'block'; els.stage.classList.add('touch'); }
+    if (e.pointerType === 'touch' || e.type === 'touchstart') { TOUCH.on = true; els.touch.style.display = 'block'; els.stage.classList.add('touch'); goFullscreen(); }
     if (GAME.state === 'title' && (e.target === els.stage || e.target === els.gl || e.target.closest && e.target.closest('#title'))) startRace();
   };
   st.addEventListener('pointerdown', tdown);
@@ -3669,9 +3681,12 @@ boot();
   function fit() {
     var st = document.getElementById('stage'), wr = document.getElementById('wrap');
     var vw = wr.clientWidth || window.innerWidth, vh = wr.clientHeight || window.innerHeight;
-    var k = Math.min(vw / 1280, vh / 720);
+    // wide phones: stretch the stage sideways (up to 21:9) instead of leaving bars
+    var sw = Math.max(1280, Math.min(1680, Math.round(720 * vw / vh)));
+    if (sw !== window.__SW) { window.__SW = sw; st.style.setProperty('--sw', sw + 'px'); if (window.__onStageW) window.__onStageW(sw); }
+    var k = Math.min(vw / sw, vh / 720);
     st.style.transform = 'scale(' + k + ')';
-    st.style.left = Math.round((vw - 1280 * k) / 2) + 'px';
+    st.style.left = Math.round((vw - sw * k) / 2) + 'px';
     st.style.top = Math.round((vh - 720 * k) / 2) + 'px';
   }
   fit(); window.addEventListener('resize', fit); window.addEventListener('orientationchange', function () { setTimeout(fit, 200); });
