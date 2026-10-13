@@ -2155,7 +2155,7 @@ const AU = {
       case 'splash': this.noise(0.9, 'bandpass', 3400, 600, 0.55 * v, 0, 0.8); this.noise(0.45, 'lowpass', 800, 160, 0.45 * v); break;
       case 'splashS': this.noise(0.35, 'bandpass', 2800, 900, 0.25 * v, 0, 0.8); break;
       case 'shift': this.noise(0.05, 'bandpass', 1800, 900, 0.08 * v); break;
-      case 'pop': this.noise(0.04, 'bandpass', 900 + Math.random() * 600, 300, 0.16 * v, 0, 2); break;
+      case 'pop': this.noise(0.035, 'lowpass', 1500 + Math.random() * 900, 260, 0.3 * v, 0, 0.8); this.tone(70 + Math.random() * 30, 0.04, 'sine', 0.22 * v, 0, 40); break;
       case 'ui': this.tone(880, 0.06, 'square', 0.07 * v); this.tone(1320, 0.1, 'square', 0.07 * v, 0.04); break;
       case 'nice': this.tone(988, 0.1, 'triangle', 0.14 * v); this.tone(1480, 0.16, 'triangle', 0.13 * v, 0.07); break;
       case 'cheer': for (let k = 0; k < 4; k++) this.noise(1.4, 'bandpass', 900 + k * 400, 700 + k * 300, 0.12 * v, k * 0.12, 0.6); break;
@@ -2164,30 +2164,85 @@ const AU = {
       case 'pass': this.tone(1200, 0.06, 'sine', 0.07 * v); break;
     }
   },
-  // ---- engines: single-cylinder four-stroke, firing rate follows rpm ----
+  // ---- engines: single-cylinder four-stroke ----
+  // One firing event = a sharp pressure pulse ringing through the exhaust (two resonances + a low thump),
+  // a short noise burst and a softer intake gulp. 24 slightly different cycles are stitched into a looped
+  // buffer, so the sound has the uneven "braap" of a real thumper; playbackRate follows the firing rate.
+  ENG_F0: 50,
+  buildEngineBuffer() {
+    const c = this.ctx, sr = c.sampleRate, f0 = this.ENG_F0, R = mulberry32(4242), cycles = 24;
+    const lens = []; let total = 0;
+    for (let k = 0; k < cycles; k++) { const L = Math.round(sr / f0 * (1 + (R() - 0.5) * 0.05)); lens.push(L); total += L; }
+    const buf = c.createBuffer(1, total, sr), d = buf.getChannelData(0);
+    let o = 0, nz = 0, nz2 = 0, peak = 0;
+    for (let k = 0; k < cycles; k++) {
+      const L = lens[k], amp = (0.82 + R() * 0.3) * (k % 9 === 4 ? 0.7 : 1);
+      const fr1 = 190 * (0.92 + R() * 0.16), fr2 = 820 * (0.88 + R() * 0.24), fth = 78 * (0.95 + R() * 0.1), ph = R() * 0.6;
+      const tIn = L / sr * (0.48 + R() * 0.06);
+      for (let i = 0; i < L; i++) {
+        const t = i / sr;
+        nz = nz * 0.55 + (R() * 2 - 1) * 0.45;          // slightly darkened noise
+        nz2 = nz2 * 0.92 + (R() * 2 - 1) * 0.08;        // low rumble noise
+        let v = 0.95 * Math.exp(-t / 0.0048) * Math.sin(TAU * fr1 * t + ph)
+          + 0.32 * Math.exp(-t / 0.0017) * Math.sin(TAU * fr2 * t + 1.1)
+          + 0.75 * Math.exp(-t / 0.0075) * Math.sin(TAU * fth * t)
+          + 0.55 * Math.exp(-t / 0.0011) * nz;
+        v *= amp;
+        const ti = t - tIn; if (ti > 0) v += 0.16 * Math.exp(-ti / 0.004) * (Math.sin(TAU * 330 * ti) * 0.6 + nz * 0.8);   // intake
+        v += nz2 * 0.5 + nz * 0.025;                      // mechanical / rumble bed
+        d[o + i] = v; peak = Math.max(peak, Math.abs(v));
+      }
+      o += L;
+    }
+    for (let i = 0; i < total; i++) d[i] *= 0.9 / peak;
+    // smooth the loop seam
+    for (let i = 0; i < 64; i++) { const w = i / 64; d[i] = d[i] * w + d[total - 64 + i] * (1 - w); }
+    this.engBuf = buf;
+    const n = 1024, curve = new Float32Array(n); for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; curve[i] = Math.tanh(x * 2.6) / Math.tanh(2.6); }
+    this.engCurve = curve;
+  },
   makeEngine() {
     const c = this.ctx; if (!c) return null;
-    const o1 = c.createOscillator(), o2 = c.createOscillator(); o1.type = 'sawtooth'; o2.type = 'square';
-    const pre = c.createGain(); pre.gain.value = 0.6;
-    const sh = c.createWaveShaper(); sh.curve = this.curve;
-    const fl = c.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = 900; fl.Q.value = 2.2;
-    const am = c.createGain(); am.gain.value = 0.7;
-    const lfo = c.createOscillator(); lfo.type = 'square'; const lg = c.createGain(); lg.gain.value = 0.3; lfo.connect(lg); lg.connect(am.gain);
+    if (!this.engBuf) this.buildEngineBuffer();
+    const src = c.createBufferSource(); src.buffer = this.engBuf; src.loop = true; src.playbackRate.value = 0.3;
+    const body = c.createBiquadFilter(); body.type = 'peaking'; body.frequency.value = 130; body.Q.value = 0.9; body.gain.value = 5;
+    // on-throttle: driven and bright; off-throttle: muffled burble
+    const gOn = c.createGain(), gOff = c.createGain(); gOn.gain.value = 0; gOff.gain.value = 1;
+    const drive = c.createGain(); drive.gain.value = 1.6;
+    const sh = c.createWaveShaper(); sh.curve = this.engCurve; sh.oversample = '2x';
+    const lpOn = c.createBiquadFilter(); lpOn.type = 'lowpass'; lpOn.frequency.value = 1800; lpOn.Q.value = 0.8;
+    const lpOff = c.createBiquadFilter(); lpOff.type = 'lowpass'; lpOff.frequency.value = 500; lpOff.Q.value = 0.7;
+    const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 38;
+    const air = c.createBiquadFilter(); air.type = 'lowpass'; air.frequency.value = 16000;   // distance absorption
+    const shift = c.createGain(); shift.gain.value = 1;
     const g = c.createGain(); g.gain.value = 0;
     const pan = c.createStereoPanner ? c.createStereoPanner() : null;
-    o1.connect(pre); o2.connect(pre); pre.connect(sh); sh.connect(fl); fl.connect(am); am.connect(g);
+    src.connect(body);
+    body.connect(drive); drive.connect(sh); sh.connect(lpOn); lpOn.connect(gOn);
+    body.connect(lpOff); lpOff.connect(gOff);
+    gOn.connect(hp); gOff.connect(hp); hp.connect(air); air.connect(shift); shift.connect(g);
     if (pan) { g.connect(pan); pan.connect(this.sfxBus); } else g.connect(this.sfxBus);
-    o1.start(); o2.start(); lfo.start();
-    return { o1, o2, fl, g, pan, lfo, rpm: 0.2, gear: 1 };
+    src.start(0, Math.random() * this.engBuf.duration);
+    return { src, gOn, gOff, lpOn, lpOff, air, shift, g, pan, gear: 1, thr: 0 };
   },
-  updateEngine(e, rpm, thr, vol, panv, load) {
+  // rpm 0..1, thr 0..1, load 0..1 (mud/sand/water), dopp: doppler factor, dist: metres to the listener
+  updateEngine(e, rpm, thr, vol, panv, load, gear, dopp, dist) {
     if (!e || !this.ctx) return;
     const t = this.ctx.currentTime;
-    const f = 34 + rpm * 128;          // firing frequency (Hz)
-    e.o1.frequency.setTargetAtTime(f, t, 0.025); e.o2.frequency.setTargetAtTime(f * 2.01, t, 0.025);
-    e.lfo.frequency.setTargetAtTime(f * 0.5, t, 0.03);
-    e.fl.frequency.setTargetAtTime(420 + rpm * 1500 + thr * 1500 * (0.4 + load * 0.6), t, 0.04);
-    e.g.gain.setTargetAtTime(vol * (0.05 + thr * 0.1 + rpm * 0.05), t, 0.04);
+    const fire = 13 + rpm * 90;                 // firing rate: ~1600 rpm idle .. ~12500 rpm
+    e.src.playbackRate.setTargetAtTime(fire / this.ENG_F0 * (dopp || 1), t, 0.03);
+    e.thr = e.thr + ((thr > 0 ? 1 : 0) - e.thr) * 0.5;
+    e.gOn.gain.setTargetAtTime(e.thr * (0.9 + load * 0.25), t, 0.035);
+    e.gOff.gain.setTargetAtTime((1 - e.thr) * (0.5 + rpm * 0.4), t, 0.05);
+    e.lpOn.frequency.setTargetAtTime(900 + rpm * 2600 + load * 500, t, 0.04);
+    e.lpOff.frequency.setTargetAtTime(320 + rpm * 900, t, 0.06);
+    e.air.frequency.setTargetAtTime(clamp(16000 / (1 + (dist || 0) / 18), 700, 16000), t, 0.1);
+    if (gear && gear !== e.gear) {
+      // a quick cut while the gear changes (up) or a blip (down)
+      if (gear > e.gear) { e.shift.gain.cancelScheduledValues(t); e.shift.gain.setValueAtTime(1, t); e.shift.gain.linearRampToValueAtTime(0.3, t + 0.025); e.shift.gain.linearRampToValueAtTime(1, t + 0.11); }
+      e.gear = gear;
+    }
+    e.g.gain.setTargetAtTime(vol * (0.13 + 0.07 * rpm), t, 0.04);
     if (e.pan) e.pan.pan.setTargetAtTime(clamp(panv, -1, 1), t, 0.05);
   },
   updateLoops(o) {
@@ -3251,11 +3306,16 @@ function updateAudio(dt) {
     if (r.crash) vol *= 0.4;
     if (GAME.state === 'title') vol *= 0.55;
     const pan = d > 0.5 ? (dx * _cr.x + dz * _cr.z) / d : 0;
-    const load = r.surf === SURF.MUD || r.surf === SURF.SAND || r.surf === SURF.WATER ? 1 : 0.4;
-    AU.updateEngine(r.engine, r.rpm, r.crash ? 0 : r.inp.thr, live ? vol : 0, r === tgt ? 0 : pan * 0.9, load);
+    const load = r.grounded && (r.surf === SURF.MUD || r.surf === SURF.SAND || r.surf === SURF.WATER) ? 1 : 0.3;
+    // doppler for bikes passing the camera (the camera rides with the target bike)
+    let dopp = 1;
+    if (r !== tgt && d > 1) { const vr = ((r.vx - tgt.vx) * -dx + (r.vz - tgt.vz) * -dz) / d; dopp = clamp(343 / (343 - vr), 0.88, 1.12); }
+    AU.updateEngine(r.engine, r.rpm, r.crash ? 0 : r.inp.thr, live ? vol : 0, r === tgt ? 0 : pan * 0.9, load, r.gear, dopp, r === tgt ? 0 : d);
   }
   // decel crackle
-  if (live && tgt && !tgt.crash && tgt.inp.thr === 0 && tgt.rpm > 0.55 && Math.random() < dt * 9) AU.sfx('pop', 0.6);
+  // decel burble: a few pops when the throttle closes at high revs
+  if (tgt) { if (tgt.inp.thr > 0) tgt.popT = 0.9; else tgt.popT = Math.max(0, (tgt.popT || 0) - dt); }
+  if (live && tgt && !tgt.crash && tgt.inp.thr === 0 && tgt.rpm > 0.4 && tgt.popT > 0 && Math.random() < dt * 14) AU.sfx('pop', 0.55 * tgt.popT);
   const crowdD = Math.min(Math.abs(tgt.q.s - CR.sStart - 10), Math.abs(tgt.q.s - CR.sFin - 10));
   AU.updateLoops({ spd: tgt.crash ? 0 : Math.abs(tgt.spd), surf: tgt.surf, grounded: tgt.grounded && !tgt.crash, air: !tgt.grounded, vol: live ? (GAME.state === 'title' ? 0.5 : 1) : 0, crowd: 1 - smooth(20, 90, crowdD) });
 }
