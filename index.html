@@ -595,18 +595,18 @@ function buildCourse(si) {
     OB.push(o); return true;
   }
   const mkRock = (s, l, big) => {
-    if (big) { const r = 0.9 + R() * 0.75; return { type: 'boulder', s, l, r, h: r * 1.05, crashV: 11, k: Math.floor(R() * 6), rot: R() * TAU }; }
-    const r = 0.32 + R() * 0.26; return { type: 'rock', s, l, r, h: r * 0.8, k: Math.floor(R() * 6), rot: R() * TAU };
+    if (big) { const r = 1.2 + R() * 0.85; return { type: 'boulder', s, l, r, h: r * 1.05, crashV: 11, k: Math.floor(R() * 6), rot: R() * TAU }; }
+    const r = 0.45 + R() * 0.32; return { type: 'rock', s, l, r, h: r * 0.8, k: Math.floor(R() * 6), rot: R() * TAU };
   };
   const mkScatter = (type, s, l) => {
     switch (type) {
       case 'rock': return mkRock(s, l, false);
       case 'boulder': return mkRock(s, l, true);
-      case 'stump': return { type: 'stump', s, l, r: 0.34 + R() * 0.1, h: 0.45 + R() * 0.3, crashV: 15, rot: R() * TAU };
-      case 'hay': return { type: 'hay', s, l, r: 0.78, h: 1.25, rot: R() * TAU };
-      case 'cactus': return { type: 'cactus', s, l, r: 0.32, h: 2.0 + R() * 1.6, crashV: 10, rot: R() * TAU };
-      case 'barrel': return { type: 'barrel', s, l, r: 0.32, h: 0.9, rot: R() * TAU };
-      case 'log': { const len = 2.4 + R() * 1.6, c = l; return { type: 'log', s, l: c, l0: c - len / 2, l1: c + len / 2, r: 0.2 + R() * 0.08, h: 0.5, short: true, rot: (R() - 0.5) * 0.5 }; }
+      case 'stump': return { type: 'stump', s, l, r: 0.45 + R() * 0.12, h: 0.6 + R() * 0.35, crashV: 15, rot: R() * TAU };
+      case 'hay': return { type: 'hay', s, l, r: 0.95, h: 1.5, rot: R() * TAU };
+      case 'cactus': return { type: 'cactus', s, l, r: 0.42, h: 2.6 + R() * 1.8, crashV: 10, rot: R() * TAU };
+      case 'barrel': return { type: 'barrel', s, l, r: 0.4, h: 1.1, rot: R() * TAU };
+      case 'log': { const len = 3 + R() * 1.8, c = l; return { type: 'log', s, l: c, l0: c - len / 2, l1: c + len / 2, r: 0.27 + R() * 0.1, h: 0.5, short: true, rot: (R() - 0.5) * 0.5 }; }
     }
     return mkRock(s, l, false);
   };
@@ -667,8 +667,8 @@ function buildCourse(si) {
       const n = 2 + Math.floor(R() * 3); let ss = s + 8;
       for (let k = 0; k < n; k++) {
         const w = wAtS(ss), full = R() < 0.22, fromL = R() < 0.5, cover = (0.45 + R() * 0.25) * 2 * w;
-        const o = full ? { type: 'log', s: ss, l0: -w - 1.5, l1: w + 1.5, r: 0.17 + R() * 0.05, h: 0.4, full: true }
-          : { type: 'log', s: ss, l0: fromL ? -w - 3 : w - cover, l1: fromL ? -w + cover : w + 3, r: 0.26 + R() * 0.12, h: 0.6, tree: true, fromL };
+        const o = full ? { type: 'log', s: ss, l0: -w - 1.5, l1: w + 1.5, r: 0.22 + R() * 0.06, h: 0.5, full: true }
+          : { type: 'log', s: ss, l0: fromL ? -w - 3 : w - cover, l1: fromL ? -w + cover : w + 3, r: 0.34 + R() * 0.14, h: 0.75, tree: true, fromL };
         o.l = (o.l0 + o.l1) / 2; o.rot = (R() - 0.5) * 0.35;
         if (full) addOb(o, true); else if (!addOb(o)) { const c = (o.l0 + o.l1) / 2; o.l0 = c + (o.l0 - c) * 0.75; o.l1 = c + (o.l1 - c) * 0.75; addOb(o); }
         ss += 14 + R() * 10;
@@ -695,19 +695,19 @@ function buildCourse(si) {
       used = len + 8;
     } else if (type === 'trees') {
       const len = 60 + R() * 40, n = Math.round(len / 14);
-      for (let k = 0; k < n; k++) { const ss = s + 6 + k * (len / n) + ndx(3); addOb({ type: 'tree', s: ss, l: ndx(wAtS(ss) - 0.8), r: 0.3, h: 9, crashV: 8, rot: R() * TAU }); }
+      for (let k = 0; k < n; k++) { const ss = s + 6 + k * (len / n) + ndx(3); addOb({ type: 'tree', s: ss, l: ndx(wAtS(ss) - 0.8), r: 0.4, h: 11, crashV: 8, rot: R() * TAU }); }
       F.marks.push({ s: s + 15, type: 'trees' });
       used = len + 8;
     } else if (type === 'hay') {
       let ss = s + 8; const n = 3 + Math.floor(R() * 2); let side = R() < 0.5 ? -1 : 1;
-      for (let k = 0; k < n; k++) { const w = wAtS(ss); addOb({ type: 'hay', s: ss, l: side * (w - 2.6 - R()), r: 0.78, h: 1.25, rot: R() * TAU }); side = -side; ss += 11 + R() * 4; }
+      for (let k = 0; k < n; k++) { const w = wAtS(ss); addOb({ type: 'hay', s: ss, l: side * (w - 2.9 - R()), r: 0.95, h: 1.5, rot: R() * TAU }); side = -side; ss += 11 + R() * 4; }
       F.marks.push({ s: s + 10, type: 'hay' });
       used = ss - s + 4;
     } else if (type === 'barrels') {
       let ss = s + 8; const n = 2 + Math.floor(R() * 2);
       for (let k = 0; k < n; k++) {
         const l = ndx(wAtS(ss) - 2);
-        for (let j = 0; j < 3; j++) addOb({ type: 'barrel', s: ss + ndx(0.4), l: l + (j - 1) * 0.72, r: 0.32, h: 0.9, rot: R() * TAU });
+        for (let j = 0; j < 3; j++) addOb({ type: 'barrel', s: ss + ndx(0.4), l: l + (j - 1) * 0.9, r: 0.4, h: 1.1, rot: R() * TAU });
         ss += 14 + R() * 8;
       }
       F.marks.push({ s: s + 10, type: 'barrels' });
@@ -1625,8 +1625,8 @@ function obstacleParts(o, x, y, z, psi, parts, R) {
       break;
     }
     case 'hay': {
-      parts.push(part(GEO.cyl, 0xcaa65a, x, y + o.r * 0.95, z, Math.PI / 2, ry, 0, o.r, 1.2, o.r));
-      parts.push(part(GEO.cyl, 0xb8944a, x, y + o.r * 0.95, z, Math.PI / 2, ry, 0, o.r * 0.7, 1.22, o.r * 0.7));
+      parts.push(part(GEO.cyl, 0xcaa65a, x, y + o.r * 0.95, z, Math.PI / 2, ry, 0, o.r, 1.45, o.r));
+      parts.push(part(GEO.cyl, 0xb8944a, x, y + o.r * 0.95, z, Math.PI / 2, ry, 0, o.r * 0.7, 1.47, o.r * 0.7));
       break;
     }
     case 'cactus': parts.push({ geo: SG.cactus, color: 0xffffff, m: new THREE.Matrix4().compose(new THREE.Vector3(x, y - 0.1, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, 0)), new THREE.Vector3(o.h, o.h, o.h)) }); break;
@@ -1655,7 +1655,7 @@ function buildObstacles(grp) {
   // barrels are dynamic (they get knocked over)
   const bm = new THREE.MeshLambertMaterial({ vertexColors: true });
   const bcols = [0x2f5fa8, 0xc23a2a, 0x3a7a3a, 0xd8a020];
-  const bgeo = mergeParts([part(GEO.cyl, 0xffffff, 0, 0.45, 0, 0, 0, 0, 0.3, 0.9, 0.3), part(GEO.cyl, 0xdddddd, 0, 0.3, 0, 0, 0, 0, 0.305, 0.04, 0.305), part(GEO.cyl, 0xdddddd, 0, 0.62, 0, 0, 0, 0, 0.305, 0.04, 0.305)]);
+  const bgeo = mergeParts([part(GEO.cyl, 0xffffff, 0, 0.55, 0, 0, 0, 0, 0.38, 1.1, 0.38), part(GEO.cyl, 0xdddddd, 0, 0.37, 0, 0, 0, 0, 0.385, 0.05, 0.385), part(GEO.cyl, 0xdddddd, 0, 0.76, 0, 0, 0, 0, 0.385, 0.05, 0.385)]);
   bgeo.userData.own = true;
   for (const o of CR.OB) if (o.type === 'barrel') {
     const m = new THREE.Mesh(bgeo, bm.clone()); m.material.color.copy(lc(bcols[Math.floor(R() * bcols.length)]));
@@ -2208,7 +2208,7 @@ const AU = {
     const body = c.createBiquadFilter(); body.type = 'peaking'; body.frequency.value = 130; body.Q.value = 0.9; body.gain.value = 5;
     // on-throttle: driven and bright; off-throttle: muffled burble
     const gOn = c.createGain(), gOff = c.createGain(); gOn.gain.value = 0; gOff.gain.value = 1;
-    const drive = c.createGain(); drive.gain.value = 1.6;
+    const drive = c.createGain(); drive.gain.value = 2.1;
     const sh = c.createWaveShaper(); sh.curve = this.engCurve; sh.oversample = '2x';
     const lpOn = c.createBiquadFilter(); lpOn.type = 'lowpass'; lpOn.frequency.value = 1800; lpOn.Q.value = 0.8;
     const lpOff = c.createBiquadFilter(); lpOff.type = 'lowpass'; lpOff.frequency.value = 500; lpOff.Q.value = 0.7;
@@ -2232,9 +2232,9 @@ const AU = {
     const fire = 13 + rpm * 90;                 // firing rate: ~1600 rpm idle .. ~12500 rpm
     e.src.playbackRate.setTargetAtTime(fire / this.ENG_F0 * (dopp || 1), t, 0.03);
     e.thr = e.thr + ((thr > 0 ? 1 : 0) - e.thr) * 0.5;
-    e.gOn.gain.setTargetAtTime(e.thr * (0.9 + load * 0.25), t, 0.035);
+    e.gOn.gain.setTargetAtTime(e.thr * (1.0 + load * 0.25), t, 0.03);
     e.gOff.gain.setTargetAtTime((1 - e.thr) * (0.5 + rpm * 0.4), t, 0.05);
-    e.lpOn.frequency.setTargetAtTime(900 + rpm * 2600 + load * 500, t, 0.04);
+    e.lpOn.frequency.setTargetAtTime(1100 + rpm * 3200 + load * 500, t, 0.04);
     e.lpOff.frequency.setTargetAtTime(320 + rpm * 900, t, 0.06);
     e.air.frequency.setTargetAtTime(clamp(16000 / (1 + (dist || 0) / 18), 700, 16000), t, 0.1);
     if (gear && gear !== e.gear) {
@@ -2242,7 +2242,8 @@ const AU = {
       if (gear > e.gear) { e.shift.gain.cancelScheduledValues(t); e.shift.gain.setValueAtTime(1, t); e.shift.gain.linearRampToValueAtTime(0.3, t + 0.025); e.shift.gain.linearRampToValueAtTime(1, t + 0.11); }
       e.gear = gear;
     }
-    e.g.gain.setTargetAtTime(vol * (0.13 + 0.07 * rpm), t, 0.04);
+    // louder and harder on the gas
+    e.g.gain.setTargetAtTime(vol * (0.12 + 0.06 * rpm + e.thr * (0.13 + 0.09 * rpm)), t, 0.04);
     if (e.pan) e.pan.pan.setTargetAtTime(clamp(panv, -1, 1), t, 0.05);
   },
   updateLoops(o) {
@@ -2847,7 +2848,13 @@ function chaseCam(r, dt, o) {
   if (r.crash) yawT = CAM.yaw;
   CAM.yaw = CAM.cut ? yawT : dampAngle(CAM.yaw, yawT, 4.2, dt);
   const fx = Math.sin(CAM.yaw), fz = Math.cos(CAM.yaw);
-  const dist = (o.dist || 5.2) + clamp(spd, 0, 32) * 0.05, ht = (o.ht || 2.05) + spd * 0.014;
+  // wide view at the start, in the air and in a crash; tight and close while riding
+  // (only real jumps count: small hops over rocks keep the tight view)
+  const air = !r.grounded && r.airT > 0.35 && r.y - r.gh > 1.0, start = GAME.state === 'countdown' || (GAME.state === 'race' && GAME.raceT < 2.5);
+  const wantW = r.crash ? 0.7 : start ? 1 : air ? clamp((r.airT - 0.35) * 2.5, 0, 0.85) : 0;
+  CAM.wide = CAM.cut ? wantW : damp(CAM.wide || 0, wantW, wantW > (CAM.wide || 0) ? 2.4 : 2.2, dt);
+  const Wd = CAM.wide;
+  const dist = (o.dist || lerp(3.7, 5.6, Wd)) + clamp(spd, 0, 32) * 0.02, ht = (o.ht || lerp(1.85, 2.3, Wd)) + spd * 0.005;
   targetPos(r, _cl);
   _cv.set(_cl.x - fx * dist, 0, _cl.z - fz * dist);
   // follow the rider's height loosely so jumps read as jumps
@@ -2855,8 +2862,9 @@ function chaseCam(r, dt, o) {
   _cv.y = CAM.lookY + ht;
   const g = camGround(_cv.x, _cv.z, r.q.i) + 1.1; if (_cv.y < g) _cv.y = g;
   if (CAM.cut) CAM.pos.copy(_cv); else { CAM.pos.x = damp(CAM.pos.x, _cv.x, 14, dt); CAM.pos.z = damp(CAM.pos.z, _cv.z, 14, dt); CAM.pos.y = damp(CAM.pos.y, _cv.y, 8, dt); if (CAM.pos.y < g) CAM.pos.y = g; }
-  CAM.look.set(_cl.x + fx * 4, CAM.lookY + 0.9, _cl.z + fz * 4);
-  CAM.fov = damp(CAM.fov, 62 + spd * 0.32, 3, dt);
+  const la = lerp(9, 4, Wd);
+  CAM.look.set(_cl.x + fx * la, CAM.lookY + lerp(0.35, 0.9, Wd), _cl.z + fz * la);
+  CAM.fov = CAM.cut ? lerp(46, 64, Wd) : damp(CAM.fov, lerp(46, 64, Wd) + spd * 0.1, 3, dt);
   // vibration from the ground
   if (r.grounded && !r.crash) CAM.shake = Math.max(CAM.shake, SP[r.surf].rough * clamp(spd / 30, 0, 1) * 0.12);
 }
