@@ -2625,7 +2625,7 @@ function stepCrash(r, dt) {
   _qq.setFromEuler(_eu.set(c.bw.x * dt, c.bw.y * dt, c.bw.z * dt)); c.bq.multiply(_qq);
   r.x = c.bp.x; r.z = c.bp.z; r.y = c.bp.y; r.q.i = _cq.i; r.q.s = _cq.s; r.q.l = _cq.l;
   r.rpm = damp(r.rpm, 0.12, 3, dt);
-  if (c.t > 2.6) respawn(r);
+  if (c.t > 1.3) respawn(r);
 }
 function respawn(r) {
   const OB = CR.OB;
@@ -2640,8 +2640,8 @@ function respawn(r) {
   }
   if (r.crash) { r.b.body.add(r.b.rider.grp); r.b.rider.grp.position.set(0, 0, 0); r.b.rider.grp.quaternion.identity(); r.b.rider.grp.scale.set(1, 1, 1); }
   r.crash = null;
-  placeRacer(r, s, best, 0);
-  r.ghost = 1.6; r.wobble = 0; r.stuckT = 0; r.wrongT = 0; r.ai.lane = best; r.ai.planT = 0;
+  placeRacer(r, s, best, 5);   // restart rolling so the time lost stays short
+  r.ghost = 1.4; r.wobble = 0; r.stuckT = 0; r.wrongT = 0; r.ai.lane = best; r.ai.planT = 0;
 }
 
 // ---------- race update ----------
@@ -2710,7 +2710,7 @@ function updateBikeVisual(r, dt, tAbs) {
   if (r.crash) {
     const c = r.crash;
     b.root.position.copy(c.bp); b.root.position.y -= 0.2; b.root.quaternion.copy(c.bq);
-    POSE.stand = 0.3; POSE.crouch = 0; POSE.leanB = 0; POSE.side = 0; POSE.flail = c.t < 1.4 ? 1 : 0.3; POSE.t = tAbs; POSE.look = 0; POSE.yaw = 0;
+    POSE.stand = 0.3; POSE.crouch = 0; POSE.leanB = 0; POSE.side = 0; POSE.flail = c.t < 0.9 ? 1 : 0.3; POSE.t = tAbs; POSE.look = 0; POSE.yaw = 0;
     poseRider(b, POSE);
     r.spin.f += dt * 4; r.spin.r += dt * 6; setBikeMech(b, 0, 0, 0.4, r.spin);
     b.blob.position.set(c.bp.x, r.y - 0.15, c.bp.z); b.blob.visible = true;
