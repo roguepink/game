@@ -2124,8 +2124,22 @@ const AU = {
       return true;
     } catch (e) { this.ctx = null; return false; }
   },
-  resume() { if (this.ctx && this.ctx.state !== 'running') this.ctx.resume(); },
-  setMuted(m) { this.muted = m; if (this.master) this.master.gain.value = m ? 0 : 0.85; },
+  resume() { if (this.ctx && !this.hushed && this.ctx.state !== 'running') this.ctx.resume(); },
+  // silence everything at once when the page is hidden, closed or stops drawing frames
+  hush(why) {
+    if (!this.ctx) return;
+    if (this.hushed) { if (why !== 'stall') this.hushWhy = why; return; }
+    this.hushed = true; this.hushWhy = why || 'hide';
+    try { const t = this.ctx.currentTime; this.master.gain.cancelScheduledValues(t); this.master.gain.setValueAtTime(0, t); } catch (e) { /* ignore */ }
+    try { this.ctx.suspend(); } catch (e) { /* ignore */ }
+  },
+  unhush() {
+    if (!this.ctx || !this.hushed || document.hidden) return;
+    this.hushed = false;
+    try { this.master.gain.setValueAtTime(this.muted ? 0 : 0.85, this.ctx.currentTime); } catch (e) { /* ignore */ }
+    if (!GAME.paused) this.resume();
+  },
+  setMuted(m) { this.muted = m; if (this.master && !this.hushed) this.master.gain.setValueAtTime(m ? 0 : 0.85, this.ctx.currentTime); },
   tone(freq, dur, type, vol, when, slideTo) {
     const c = this.ctx; if (!c) return; const t = c.currentTime + (when || 0);
     const o = c.createOscillator(), g = c.createGain(); o.type = type || 'sine'; o.frequency.setValueAtTime(freq, t);
@@ -3135,7 +3149,7 @@ function toggleHelp() {
 
 // ---------- input ----------
 let anyInput = false;
-function onUserGesture() { if (!AU.started) AU.init(); AU.resume(); }
+function onUserGesture() { if (!AU.started) AU.init(); AU.unhush(); AU.resume(); }
 function goFullscreen() {
   const d = document, el = d.documentElement;
   if (d.fullscreenElement || d.webkitFullscreenElement) return;
@@ -3173,8 +3187,14 @@ function initInput() {
     if (c === 'KeyR' && (st === 'race' || st === 'countdown' || st === 'finish')) { setPaused(false); startStage(STAGE_I); return; }
   });
   window.addEventListener('keyup', (e) => { KEYS[e.code] = false; });
-  window.addEventListener('blur', () => { for (const k in KEYS) KEYS[k] = false; TOUCH.l = TOUCH.r = TOUCH.a = false; if (GAME.state === 'race' || GAME.state === 'countdown') setPaused(true); });
-  document.addEventListener('visibilitychange', () => { if (document.hidden && (GAME.state === 'race' || GAME.state === 'countdown')) setPaused(true); });
+  window.addEventListener('blur', () => { for (const k in KEYS) KEYS[k] = false; TOUCH.l = TOUCH.r = TOUCH.a = false; if (GAME.state === 'race' || GAME.state === 'countdown') setPaused(true); AU.hush(); });
+  window.addEventListener('focus', () => AU.unhush());
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { if (GAME.state === 'race' || GAME.state === 'countdown') setPaused(true); AU.hush(); }
+    else AU.unhush();
+  });
+  window.addEventListener('pagehide', () => AU.hush());
+  window.addEventListener('pageshow', () => AU.unhush());
   // pointer / touch
   const st = els.stage;
   st.addEventListener('pointerdown', (e) => {
@@ -3346,8 +3366,10 @@ function frameUpdate(dt) {
   updateHUD(dt);
   updateAudio(dt);
 }
+let lastFrameWall = 0;
 function frame(now) {
   requestAnimationFrame(frame);
+  lastFrameWall = performance.now(); if (AU.hushed && AU.hushWhy === 'stall') AU.unhush();
   if (window.__freeze) return;
   if (!lastT) lastT = now;
   const dt = Math.min(0.05, Math.max(0.0001, (now - lastT) / 1000)); lastT = now;
@@ -3387,6 +3409,8 @@ async function boot2() {
   setLoad(1, 'スタート'); await tick();
   els.loading.style.transition = 'opacity .5s'; els.loading.style.opacity = 0; setTimeout(() => { els.loading.style.display = 'none'; }, 520);
   requestAnimationFrame(frame);
+  // if the page stops drawing (closed, sent to the background, screen off) cut the sound right away
+  setInterval(() => { if (lastFrameWall && performance.now() - lastFrameWall > 1000) AU.hush('stall'); }, 250);
   window.__g = {
     GAME, CAM, KEYS, TOUCH, camera, scene, renderer, Q, PS, AU, SAVE, STAGES,
     get CR() { return CR; }, CR_DBG, get THEME() { return THEME; },
