@@ -2854,7 +2854,7 @@ function chaseCam(r, dt, o) {
   const wantW = r.crash ? 0.7 : start ? 1 : air ? clamp((r.airT - 0.35) * 2.5, 0, 0.85) : 0;
   CAM.wide = CAM.cut ? wantW : damp(CAM.wide || 0, wantW, wantW > (CAM.wide || 0) ? 2.4 : 2.2, dt);
   const Wd = CAM.wide;
-  const dist = (o.dist || lerp(3.7, 5.6, Wd)) + clamp(spd, 0, 32) * 0.02, ht = (o.ht || lerp(1.85, 2.3, Wd)) + spd * 0.005;
+  const dist = (o.dist || lerp(4.2, 6.0, Wd)) + clamp(spd, 0, 32) * 0.02, ht = (o.ht || lerp(3.1, 3.0, Wd)) + spd * 0.006;
   targetPos(r, _cl);
   _cv.set(_cl.x - fx * dist, 0, _cl.z - fz * dist);
   // follow the rider's height loosely so jumps read as jumps
@@ -2862,9 +2862,10 @@ function chaseCam(r, dt, o) {
   _cv.y = CAM.lookY + ht;
   const g = camGround(_cv.x, _cv.z, r.q.i) + 1.1; if (_cv.y < g) _cv.y = g;
   if (CAM.cut) CAM.pos.copy(_cv); else { CAM.pos.x = damp(CAM.pos.x, _cv.x, 14, dt); CAM.pos.z = damp(CAM.pos.z, _cv.z, 14, dt); CAM.pos.y = damp(CAM.pos.y, _cv.y, 8, dt); if (CAM.pos.y < g) CAM.pos.y = g; }
-  const la = lerp(9, 4, Wd);
-  CAM.look.set(_cl.x + fx * la, CAM.lookY + lerp(0.35, 0.9, Wd), _cl.z + fz * la);
-  CAM.fov = CAM.cut ? lerp(46, 64, Wd) : damp(CAM.fov, lerp(46, 64, Wd) + spd * 0.1, 3, dt);
+  // looks down at the trail well ahead of the bike, so the rider no longer hides what is coming
+  const la = lerp(14, 6, Wd);
+  CAM.look.set(_cl.x + fx * la, CAM.lookY + lerp(-0.2, 0.8, Wd), _cl.z + fz * la);
+  CAM.fov = CAM.cut ? lerp(49, 64, Wd) : damp(CAM.fov, lerp(49, 64, Wd) + spd * 0.1, 3, dt);
   // vibration from the ground
   if (r.grounded && !r.crash) CAM.shake = Math.max(CAM.shake, SP[r.surf].rough * clamp(spd / 30, 0, 1) * 0.12);
 }
