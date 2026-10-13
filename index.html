@@ -3195,6 +3195,13 @@ function initInput() {
   });
   window.addEventListener('pagehide', () => AU.hush());
   window.addEventListener('pageshow', () => AU.unhush());
+  // phone back button while full screen only leaves full screen (the page stays visible): stop the sound until the next tap
+  const fsExit = () => {
+    if (document.fullscreenElement || document.webkitFullscreenElement || !TOUCH.on) return;
+    if (GAME.state === 'race' || GAME.state === 'countdown') setPaused(true);
+    AU.hush('fs');
+  };
+  document.addEventListener('fullscreenchange', fsExit); document.addEventListener('webkitfullscreenchange', fsExit);
   // pointer / touch
   const st = els.stage;
   st.addEventListener('pointerdown', (e) => {
