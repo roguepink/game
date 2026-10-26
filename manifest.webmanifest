@@ -30,5 +30,45 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "screenshots": [
+    {
+      "src": "shots/1.jpg",
+      "sizes": "780x360",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "タイトル画面(自動デモのレース)"
+    },
+    {
+      "src": "shots/2.jpg",
+      "sizes": "780x360",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "渓流クロッシング"
+    },
+    {
+      "src": "shots/3.jpg",
+      "sizes": "780x360",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "サンドデューン"
+    },
+    {
+      "src": "shots/4.jpg",
+      "sizes": "780x360",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "夕暮れの荒野で ナイス着地"
+    },
+    {
+      "src": "shots/5.jpg",
+      "sizes": "780x360",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "黒い火山でライバルを追う"
+    }
+  ],
+  "categories": [
+    "games"
   ]
 }
