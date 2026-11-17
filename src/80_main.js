@@ -13,6 +13,7 @@ async function loadStage(i, demo, noFade) {
   buildHudForStage();
   PS.dust.clear(); PS.grit.clear(); PS.mist.clear(); PS.fire.clear();
   CAM.cut = true; CAM.shot = null; CAM.target = GAME.player; CAM.shake = 0;
+  resetTracks(); LENS.drops.length = 0; FX.hemi0 = THEME.hemi[2]; FX.exp0 = THEME.exp; FX.tun = 0; GAME.cpI = 0;
   GAME.raceT = 0; GAME.finT = 0; GAME.resultsT = 0;
   rankRacers();
   GAME.loading = false;
@@ -106,8 +107,10 @@ function frameUpdate(dt) {
   tAbs += dt;
   const dtv = GAME.paused ? 0 : dt * GAME.timeScale;
   if (CR) {
+    for (const r of GAME.racers) updateBikeVisual(r, dtv, tAbs);
     updateCamera(dt);
-    for (const r of GAME.racers) { updateBikeVisual(r, dtv, tAbs); if (dtv > 0) emitForRacer(r, dtv); }
+    if (dtv > 0) for (const r of GAME.racers) emitForRacer(r, dtv);
+    updateFx(dt, dtv);
     const scale = (HGT * Q.pixelRatio) / (2 * Math.tan(camera.fov * Math.PI / 360));
     PS.dust.update(dtv, scale, WIND); PS.grit.update(dtv, scale); PS.mist.update(dtv, scale, WIND); PS.fire.update(dtv, scale); if (dtv > 0) updateRings(dtv);
     updateScenery(dtv, tAbs); if (dtv > 0) updateDynamic(dtv, tAbs);
@@ -147,6 +150,7 @@ async function boot2() {
   setLoad(0.3, 'バイクを整備中…'); await tick();
   for (let i = 0; i < RIDERS.length; i++) GAME.racers.push(createRacer(i));
   GAME.player = GAME.racers[0];
+  initFx(); VIEW.mode = SAVE.view | 0;
   initInput();
   const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
   if (coarse) Q.level = 1;
@@ -163,7 +167,7 @@ async function boot2() {
   // if the page stops drawing (closed, sent to the background, screen off) cut the sound right away
   setInterval(() => { if (lastFrameWall && performance.now() - lastFrameWall > 1000) AU.hush('stall'); }, 250);
   window.__g = {
-    GAME, CAM, KEYS, TOUCH, camera, scene, renderer, Q, PS, AU, SAVE, STAGES,
+    GAME, CAM, KEYS, TOUCH, camera, scene, renderer, Q, PS, AU, SAVE, STAGES, VIEW, FX, LENS, SKY, FPV, setView, lensSplash,
     get CR() { return CR; }, CR_DBG, get THEME() { return THEME; },
     stepN(n) { for (let i = 0; i < n; i++) simStep(1 / 60); },
     stepDt(h, n) { for (let i = 0; i < n; i++) simStep(h); },

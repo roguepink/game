@@ -60,6 +60,15 @@ function emitForRacer(r, dt) {
   const lod = dc < 60 ? 1 : 0.45;
   const v = Math.max(0, r.spd), rc = rearContact(r, _rc), surf = r.surf;
   const rx = -rc.fz, rz = rc.fx;
+  // boost: flame from the exhaust
+  if (r.boostT > 0 && dc < 90) {
+    const n = Math.floor(dt * 80 + Math.random()), ey = r.y + 0.66 + Math.sin(Math.max(0, r.wheelie)) * 0.3;
+    for (let k = 0; k < n; k++) PS.fire.emit(rc.x + rx * 0.16 - rc.fx * 0.1, ey, rc.z + rz * 0.16 - rc.fz * 0.1, r.vx * 0.72 + (Math.random() - 0.5), 0.2 + Math.random() * 0.8, r.vz * 0.72 + (Math.random() - 0.5), 0.14 + Math.random() * 0.14, 0.42, 0.06, 1, 0.5 + Math.random() * 0.35, 0.14, 1, -1.5, 1.2);
+  }
+  if (r === CAM.target && r.grounded && v > 7) {
+    if (surf === SURF.MUD && Math.random() < dt * 1.5) lensSplash('mud', 1 + Math.floor(Math.random() * 2));
+    else if (surf === SURF.WATER && Math.random() < dt * 4) lensSplash('water', 1);
+  }
   if (r.grounded) {
     // dust plume
     const dk = DUSTK[surf] * clamp(v / 26, 0, 1.2);
@@ -107,6 +116,8 @@ function splash(r, k) {
   }
   for (let i = 0; i < 10 * k; i++) PS.mist.emit(r.x + (Math.random() - 0.5) * 2, r.gh + 0.6, r.z + (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 3, 1 + Math.random() * 2, (Math.random() - 0.5) * 3, 1 + Math.random() * 0.6, 1.2, 4.5, 0.94, 0.96, 0.99, 0.4, 0, 1.2);
   if (r.isPlayer) CAM.shake = Math.max(CAM.shake, 0.3);
+  if (r === CAM.target) lensSplash('water', Math.round(5 + 9 * k));
+  else if (Math.hypot(r.x - camera.position.x, r.z - camera.position.z) < 7) lensSplash('water', 3);
 }
 function landDust(r, k) {
   const surf = r.surf;

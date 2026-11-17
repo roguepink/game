@@ -403,7 +403,7 @@ function buildWorld() {
   WORLD = new THREE.Group(); WORLD.userData.chunks = []; WORLD.userData.inst = [];
   scene.add(WORLD);
   applyTheme();
-  buildTerrain(WORLD); buildTrail(WORLD); buildWater(WORLD); buildScenery(WORLD); buildDynamic(WORLD);
+  buildTerrain(WORLD); buildTrail(WORLD); buildWater(WORLD); buildScenery(WORLD); buildDynamic(WORLD); buildSky(WORLD);
 }
 const _frus = new THREE.Frustum(), _pm = new THREE.Matrix4();
 function cullInstances(camPos, focus) {

@@ -1,23 +1,26 @@
 // ===================== UI: HUD, menus, input, save data =====================
 const els = {};
 const GP = { thr: 0, steer: 0, brake: 0, btn: [] };
-const SAVE = { unlocked: 1, best: {} };
+const SAVE = { unlocked: 1, best: {}, view: 0 };
 const SAVE_KEY = 'gritTrail.v1';
-function loadSave() { try { const d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (d && typeof d.unlocked === 'number') { SAVE.unlocked = clamp(d.unlocked, 1, STAGES.length); SAVE.best = d.best || {}; } } catch (e) { /* storage unavailable */ } }
+function loadSave() { try { const d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (d && typeof d.unlocked === 'number') { SAVE.unlocked = clamp(d.unlocked, 1, STAGES.length); SAVE.best = d.best || {}; SAVE.view = clamp(d.view | 0, 0, 2); } } catch (e) { /* storage unavailable */ } }
 function writeSave() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(SAVE)); } catch (e) { /* storage unavailable */ } }
 const $ = (id) => document.getElementById(id);
 function fmtT(t) { if (!isFinite(t)) return '--:--.--'; const m = Math.floor(t / 60), s = t - m * 60; return m + ':' + (s < 10 ? '0' : '') + s.toFixed(2); }
 const hexCss = (c) => '#' + c.toString(16).padStart(6, '0');
 
 function initDom() {
-  ['gl', 'hud', 'stNo', 'stName', 'posBox', 'posNum', 'posOf', 'qual', 'board', 'prog', 'progFill', 'progTxt', 'timeTxt', 'speedNum', 'rpm', 'surfTxt', 'msg', 'count', 'wrong', 'title', 'intro', 'introBox', 'select', 'pause', 'results', 'help', 'touch', 'fade', 'loading', 'loadmsg', 'flash', 'letter', 'stage', 'ctrls', 'tbL', 'tbR', 'tbA', 'tbP', 'pzRetry', 'pzTitle', 'demoTag'].forEach((k) => { els[k] = $(k); });
-  els.rpmI = els.rpm.querySelector('i');
-  els.ctrls.innerHTML = '<span><span class="kb">↑</span>/<span class="kb">Space</span> アクセル</span><span><span class="kb">←</span><span class="kb">→</span> 左右</span><span><span class="kb">↓</span> ブレーキ</span><span><span class="kb">H</span> 操作説明</span><span><span class="kb">M</span> 音</span><span><span class="kb">F</span> 全画面</span>';
+  ['gl', 'hud', 'stNo', 'stName', 'posBox', 'posNum', 'posOf', 'qual', 'board', 'prog', 'progFill', 'progTxt', 'timeTxt', 'speedNum', 'rpm', 'surfTxt', 'msg', 'count', 'wrong', 'title', 'intro', 'introBox', 'select', 'pause', 'results', 'help', 'touch', 'fade', 'loading', 'loadmsg', 'flash', 'letter', 'stage', 'ctrls', 'tbL', 'tbR', 'tbA', 'tbP', 'tbT', 'tbV', 'styleBox', 'styleNum', 'boost', 'pzRetry', 'pzTitle', 'demoTag'].forEach((k) => { els[k] = $(k); });
+  els.rpmI = els.rpm.querySelector('i'); els.boostI = els.boost.querySelector('i');
+  els.ctrls.innerHTML = '<span><span class="kb">↑</span>/<span class="kb">Space</span> アクセル</span><span><span class="kb">←</span><span class="kb">→</span> 左右</span><span><span class="kb">↓</span> ブレーキ／空中でトリック</span><span><span class="kb">C</span> 視点</span><span><span class="kb">H</span> 操作説明</span><span><span class="kb">M</span> 音</span><span><span class="kb">F</span> 全画面</span>';
   els.help.innerHTML = '<div class="panel"><h3>あそびかた</h3>' +
     '<div><b>アクセルを押している間だけ加速</b>、離すと減速します。<kbd>↑</kbd> / <kbd>W</kbd> / <kbd>Space</kbd>（スマホは画面右側を押す）</div>' +
     '<div><kbd>←</kbd> <kbd>→</kbd>（スマホは左下のボタン）で左右に曲がって障害物をよける。<kbd>↓</kbd> でブレーキ</div>' +
     '<div><b>岩・倒木・切り株・サボテン</b>にスピードを出したまま当たるとクラッシュ。小石や丸太は乗り越えられますが減速します</div>' +
     '<div><b>空中でアクセル</b>を押すと前輪が上がり、離すと下がります。着地面に車体を合わせると<b>ナイス着地</b>で加速</div>' +
+    '<div><b>空中トリック</b>：ジャンプ中に <kbd>↓</kbd> / <kbd>X</kbd>（スマホは TRICK ボタン）で宙返り、左右を押しながらだと横回転。回り切ってから着地すると<b>ブースト</b>。回転の途中で着地するとクラッシュ</div>' +
+    '<div>木の<b>大ジャンプ台</b>の先の<b>火の輪</b>をくぐるとブースト。<b>つり橋</b>は板の上を、<b>谷越え</b>は勢いをつけて飛ぶ。落ちるとタイムロス</div>' +
+    '<div><kbd>C</kbd>（スマホは「視点」）で <b>うしろから／ひろく／ライダー目線</b> を切り替え</div>' +
     '<div>泥・砂・水はスピードが落ちます。ラインを選んで避けると速い。2位以内でゴールすると次のステージへ</div>' +
     '<div style="margin-top:8px;font-size:17px;color:var(--dim)"><kbd>P</kbd> ポーズ　<kbd>R</kbd> リトライ　<kbd>Esc</kbd> タイトル　<kbd>M</kbd> サウンド　<kbd>F</kbd> 全画面　<kbd>Q</kbd> 画質（今: <span id="qlv"></span>）　<kbd>H</kbd> 閉じる</div></div>';
 }
@@ -56,6 +59,9 @@ function updateHUD(dt) {
   els.rpmI.style.width = Math.round(clamp(p.rpm, 0, 1) * 100) + '%';
   els.surfTxt.textContent = p.crash ? '' : (p.grounded ? SURF_NAME[p.surf] : 'AIR') + '  ' + p.gear + '速';
   els.timeTxt.textContent = fmtT(GAME.raceT);
+  { const sv = Math.round(p.style); if (sv !== els.styleNum._v) { els.styleNum._v = sv; els.styleNum.textContent = sv; }
+    const bw = Math.round(clamp(p.boostT / 2.6, 0, 1) * 100); if (bw !== els.boostI._v) { els.boostI._v = bw; els.boostI.style.width = bw + '%'; els.styleBox.classList.toggle('on', bw > 0); }
+    const air = !p.grounded && !p.crash && p.airT > 0.1; if (air !== els.tbT._a) { els.tbT._a = air; els.tbT.classList.toggle('air', air); } }
   const rank = p.finished ? p.place : p.rank || 6;
   if (rank !== lastRank) { els.posNum.textContent = rank; els.posBox.classList.remove('bump'); void els.posBox.offsetWidth; els.posBox.classList.add('bump'); lastRank = rank; }
   els.posBox.classList.toggle('out', rank > 2);
@@ -140,13 +146,15 @@ function showResults() {
   const pass = place <= 2, last = STAGE_I === STAGES.length - 1;
   if (pass) { SAVE.unlocked = Math.max(SAVE.unlocked, Math.min(STAGES.length, STAGE_I + 2)); }
   const b = SAVE.best[STAGE_I];
-  if (!b || place < b.place || (place === b.place && p.finishT < b.time)) SAVE.best[STAGE_I] = { place, time: p.finishT };
+  const sty = Math.round(p.style), bs = Math.max(sty, (b && b.style) || 0);
+  if (!b || place < b.place || (place === b.place && p.finishT < b.time)) SAVE.best[STAGE_I] = { place, time: p.finishT, style: bs }; else b.style = bs;
+  const trk = `スタイル ${sty}点 ・ トリック ${p.stats.tricks}回${p.stats.best ? '（最高: ' + p.stats.best + '）' : ''}${p.stats.rings ? ' ・ 火の輪 ' + p.stats.rings + '回' : ''}`;
   writeSave();
   const rows = fo.map((e, k) => `<div class="row${e.r.isPlayer ? ' me' : ''}${k < 2 ? ' q' : ''}"><b>${k + 1}</b><i class="sw" style="background:${hexCss(e.r.rd.col)}"></i><span class="nb">#${e.r.rd.num}</span><span class="nm">${e.r.rd.name}</span><span class="tm">${e.est ? '(' + fmtT(e.t) + ')' : fmtT(e.t)}</span></div>`).join('');
   let title, note, btns;
-  if (pass && last) { title = '全ステージ制覇！'; note = `${place}位でフィニッシュ。グランドエンデューロ完走、おめでとう！`; btns = [['title', 'タイトルへ', true], ['retry', 'もう一度走る']]; }
-  else if (pass) { title = place === 1 ? '優勝！' : '2位でクリア！'; note = `ステージ${STAGE_I + 2}「${STAGES[STAGE_I + 1].name}」が開きました。クラッシュ ${p.stats.crash}回 ・ ナイス着地 ${p.stats.nice}回`; btns = [['next', '次のステージへ', true], ['retry', 'リトライ'], ['select', 'ステージ選択']]; }
-  else { title = place + '位 … 2位以内に入れず'; note = `クラッシュ ${p.stats.crash}回。岩や倒木を避け、泥や水の少ないラインを選ぶのがコツ。`; btns = [['retry', 'リトライ', true], ['select', 'ステージ選択']]; }
+  if (pass && last) { title = '全ステージ制覇！'; note = `${place}位でフィニッシュ。グランドエンデューロ完走、おめでとう！<br>${trk}`; btns = [['title', 'タイトルへ', true], ['retry', 'もう一度走る']]; }
+  else if (pass) { title = place === 1 ? '優勝！' : '2位でクリア！'; note = `ステージ${STAGE_I + 2}「${STAGES[STAGE_I + 1].name}」が開きました。クラッシュ ${p.stats.crash}回 ・ ナイス着地 ${p.stats.nice}回<br>${trk}`; btns = [['next', '次のステージへ', true], ['retry', 'リトライ'], ['select', 'ステージ選択']]; }
+  else { title = place + '位 … 2位以内に入れず'; note = `クラッシュ ${p.stats.crash}回。岩や倒木を避け、泥や水の少ないラインを選ぶのがコツ。<br>${trk}`; btns = [['retry', 'リトライ', true], ['select', 'ステージ選択']]; }
   els.results.innerHTML = `<div class="panel"><div class="hd"><h2 class="${pass ? 'ok' : 'ng'}">${title}</h2><span class="st">STAGE ${STAGE_I + 1} ${STAGE.name}</span></div>${rows}<div class="note">${note}</div><div class="btns">${btns.map((x, i) => `<button class="btn${x[2] ? ' pri' : ''}" data-a="${x[0]}" data-k="${i}">${x[1]}</button>`).join('')}</div></div>`;
   els.results.style.display = 'block';
   resBtns = Array.from(els.results.querySelectorAll('.btn')); resSel = 0; markRes();
@@ -202,6 +210,7 @@ function initInput() {
     if (c === 'KeyF') { try { const d = document, el = d.documentElement; const r = !d.fullscreenElement ? (el.requestFullscreen || el.webkitRequestFullscreen || function () {}).call(el) : (d.exitFullscreen || d.webkitExitFullscreen || function () {}).call(d); if (r && r.catch) r.catch(() => {}); } catch (err) { /* optional */ } return; }
     if (c === 'KeyQ') { Q.level = (Q.level + 2) % 3; applyQuality(); showMsg('画質: ' + ['低', '中', '高'][Q.level], 's'); return; }
     if (c === 'KeyH') { toggleHelp(); return; }
+    if (c === 'KeyC' || c === 'KeyV') { setView(VIEW.mode + 1); return; }
     if (GAME.menu === 'select') { selectKey(c); return; }
     const st = GAME.state;
     if (st === 'title') { if (!GAME.loading) { AU.sfx('ui', 0.6); openSelect(); } return; }
@@ -217,7 +226,7 @@ function initInput() {
     if (c === 'KeyR' && (st === 'race' || st === 'countdown' || st === 'finish')) { setPaused(false); startStage(STAGE_I); return; }
   });
   window.addEventListener('keyup', (e) => { KEYS[e.code] = false; });
-  window.addEventListener('blur', () => { for (const k in KEYS) KEYS[k] = false; TOUCH.l = TOUCH.r = TOUCH.a = false; if (GAME.state === 'race' || GAME.state === 'countdown') setPaused(true); AU.hush(); });
+  window.addEventListener('blur', () => { for (const k in KEYS) KEYS[k] = false; TOUCH.l = TOUCH.r = TOUCH.a = TOUCH.t = false; if (GAME.state === 'race' || GAME.state === 'countdown') setPaused(true); AU.hush(); });
   window.addEventListener('focus', () => AU.unhush());
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { if (GAME.state === 'race' || GAME.state === 'countdown') setPaused(true); AU.hush(); }
@@ -244,7 +253,8 @@ function initInput() {
     const on = (v) => (e) => { e.preventDefault(); e.stopPropagation(); onUserGesture(); TOUCH[key] = v; el.classList.toggle('on', v); };
     el.addEventListener('pointerdown', on(true)); el.addEventListener('pointerup', on(false)); el.addEventListener('pointercancel', on(false)); el.addEventListener('pointerleave', on(false));
   };
-  bind(els.tbL, 'l'); bind(els.tbR, 'r'); bind(els.tbA, 'a');
+  bind(els.tbL, 'l'); bind(els.tbR, 'r'); bind(els.tbA, 'a'); bind(els.tbT, 't');
+  els.tbV.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); setView(VIEW.mode + 1); });
   els.tbP.addEventListener('pointerdown', (e) => { e.stopPropagation(); setPaused(!GAME.paused); });
   els.pause.addEventListener('pointerdown', (e) => { if (e.target === els.pause || e.target.classList.contains('pbox')) setPaused(false); });
   els.pzRetry.addEventListener('pointerdown', (e) => { e.stopPropagation(); setPaused(false); startStage(STAGE_I); });
@@ -254,12 +264,13 @@ function initInput() {
 function pollGamepad() {
   let pads = []; try { pads = navigator.getGamepads ? navigator.getGamepads() : []; } catch (e) { pads = []; }
   const gp = pads && Array.from(pads).find((p) => p && p.connected);
-  if (!gp) { GP.thr = 0; GP.steer = 0; GP.brake = 0; return; }
+  if (!gp) { GP.thr = 0; GP.steer = 0; GP.brake = 0; GP.trick = 0; return; }
   const btn = (i) => !!(gp.buttons[i] && (gp.buttons[i].pressed || gp.buttons[i].value > 0.4));
   const ax = gp.axes[0] || 0;
   GP.steer = Math.abs(ax) > 0.15 ? clamp(ax, -1, 1) : (btn(15) ? 1 : 0) - (btn(14) ? 1 : 0);
   GP.thr = btn(0) || btn(7) ? 1 : 0; GP.brake = btn(1) || btn(6) ? 1 : 0;
-  const prev = GP.btn; GP.btn = [btn(0), btn(9), btn(12), btn(13), btn(14), btn(15)];
+  GP.trick = btn(2) || btn(5) ? 1 : 0;
+  const prev = GP.btn; GP.btn = [btn(0), btn(9), btn(12), btn(13), btn(14), btn(15), btn(3)];
   const press = (k) => GP.btn[k] && !prev[k];
   if (press(0) || press(1)) {
     onUserGesture();
@@ -269,6 +280,7 @@ function pollGamepad() {
     else if (press(1)) setPaused(!GAME.paused);
   }
   if (GAME.menu === 'select') { if (press(4)) selectKey('ArrowLeft'); if (press(5)) selectKey('ArrowRight'); }
+  else if (press(6)) setView(VIEW.mode + 1);
 }
 
 // ---------- quality ----------

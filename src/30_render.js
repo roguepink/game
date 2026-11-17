@@ -425,7 +425,7 @@ function buildWater(grp) {
   // ravine floors: a stream, or lava on the volcano
   if (CR.F.ravines.length) {
     const lava = !!T.lava;
-    const rm = lava ? new THREE.MeshBasicMaterial({ color: 0xff6a18, map: mat.map }) : mat;
+    const rm = lava ? new THREE.MeshBasicMaterial({ color: lc(0xff4a0c).multiplyScalar(1.7), map: mat.map }) : mat;
     const sv = mat; void sv;
     for (const c of CR.F.ravines) {
       const uh = c.hw + c.flare + 3, m = addGrid(7, 61, (a, b, o) => {

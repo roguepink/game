@@ -19,7 +19,8 @@ function chaseCam(r, dt, o) {
   const wantW = r.crash ? 0.7 : start ? 1 : air ? clamp((r.airT - 0.35) * 2.5, 0, 0.85) : 0;
   CAM.wide = CAM.cut ? wantW : damp(CAM.wide || 0, wantW, wantW > (CAM.wide || 0) ? 2.4 : 2.2, dt);
   const Wd = CAM.wide;
-  const dist = (o.dist || lerp(4.2, 6.0, Wd)) + clamp(spd, 0, 32) * 0.02, ht = (o.ht || lerp(3.1, 3.0, Wd)) + spd * 0.006;
+  const vm = VIEW.mode === 1 && (GAME.state === 'race' || GAME.state === 'countdown') ? 1 : 0;
+  const dist = (o.dist || lerp(VIEW.dist[vm], 6.0 + vm * 2.2, Wd)) + clamp(spd, 0, 32) * 0.02, ht = (o.ht || lerp(VIEW.ht[vm], 3.0 + vm * 1.3, Wd)) + spd * 0.006;
   targetPos(r, _cl);
   _cv.set(_cl.x - fx * dist, 0, _cl.z - fz * dist);
   // follow the rider's height loosely so jumps read as jumps
@@ -31,9 +32,9 @@ function chaseCam(r, dt, o) {
   if (_cv.y > roof) _cv.y = roof;
   if (CAM.cut) CAM.pos.copy(_cv); else { CAM.pos.x = damp(CAM.pos.x, _cv.x, 14, dt); CAM.pos.z = damp(CAM.pos.z, _cv.z, 14, dt); CAM.pos.y = damp(CAM.pos.y, _cv.y, 8, dt); if (CAM.pos.y < g) CAM.pos.y = g; if (CAM.pos.y > roof) CAM.pos.y = roof; }
   // looks down at the trail well ahead of the bike, so the rider no longer hides what is coming
-  const la = lerp(14, 6, Wd);
+  const la = lerp(VIEW.la[vm], 6, Wd);
   CAM.look.set(_cl.x + fx * la, CAM.lookY + lerp(-0.2, 0.8, Wd), _cl.z + fz * la);
-  CAM.fov = CAM.cut ? lerp(49, 64, Wd) : damp(CAM.fov, lerp(49, 64, Wd) + spd * 0.1, 3, dt);
+  CAM.fov = CAM.cut ? lerp(VIEW.fov[vm], 64, Wd) : damp(CAM.fov, lerp(VIEW.fov[vm], 64, Wd) + spd * 0.1 + (r.boostT > 0 ? 6 : 0), 3, dt);
   // vibration from the ground
   if (r.grounded && !r.crash) CAM.shake = Math.max(CAM.shake, SP[r.surf].rough * clamp(spd / 30, 0, 1) * 0.12);
 }
@@ -102,9 +103,17 @@ function resultsCam(dt) {
 function updateCamera(dt) {
   const st = GAME.state;
   if (!CR) return;
+  const fp = (st === 'countdown' || st === 'race') && VIEW.mode === 2 && !GAME.player.crash;
+  if (!fp && CAM.fp) { CAM.fp = false; CAM.cut = true; }
+  fpVisible(GAME.player, fp);
   if (st === 'title') directorCam(dt);
   else if (st === 'intro') introCam(dt);
-  else if (st === 'countdown' || st === 'race') { CAM.target = GAME.player; chaseCam(GAME.player, dt); CAM.cut = false; }
+  else if (st === 'countdown' || st === 'race') {
+    CAM.target = GAME.player;
+    if (fp !== !!CAM.fp) { CAM.fp = fp; CAM.cut = true; }
+    if (fp) fpCam(GAME.player, dt); else chaseCam(GAME.player, dt);
+    CAM.cut = false;
+  }
   else if (st === 'finish') { if (!CAM.shot || !CAM.shot.keep) { CAM.shot = pickShot(Math.random() < 0.5 ? 'front' : 'heli', GAME.player); CAM.shot.dur = 99; CAM.shot.keep = true; CAM.cut = true; CAM.target = GAME.player; } directorCam(dt); }
   else if (st === 'results') resultsCam(dt);
   camera.position.copy(CAM.pos);
@@ -113,9 +122,9 @@ function updateCamera(dt) {
     camera.position.x += (Math.random() - 0.5) * k; camera.position.y += (Math.random() - 0.5) * k; camera.position.z += (Math.random() - 0.5) * k;
     CAM.shake *= Math.exp(-5 * dt);
   }
-  camera.lookAt(CAM.look);
+  if (!fp) camera.lookAt(CAM.look);
   // lean the view with the bike
-  { const tr = CAM.target, st2 = GAME.state, want = tr && !tr.crash && (st2 === 'race' || st2 === 'countdown' || (CAM.shot && CAM.shot.kind === 'chase')) ? -tr.roll * 0.42 : 0;
+  if (!fp) { const tr = CAM.target, st2 = GAME.state, want = tr && !tr.crash && (st2 === 'race' || st2 === 'countdown' || (CAM.shot && CAM.shot.kind === 'chase')) ? -tr.roll * 0.42 : 0;
     CAM.roll = damp(CAM.roll || 0, want, 5, dt); if (Math.abs(CAM.roll) > 0.002) camera.rotateZ(CAM.roll); }
   if (Math.abs(camera.fov - CAM.fov) > 0.05) { camera.fov = CAM.fov; camera.updateProjectionMatrix(); }
   skyMesh.position.copy(camera.position);

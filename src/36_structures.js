@@ -184,7 +184,7 @@ function buildKickers(grp) {
       const top = [];
       for (const sd of [-1, 1]) {
         const l = f.lc + sd * f.hwr, x = fr.x + fr.rx * l, z = fr.z + fr.rz * l, lin = f.lc + sd * (f.hwr - 0.6);
-        const y = H(s - 0.001, lin, fr.x + fr.rx * lin, fr.z + fr.rz * lin, 2) + 0.05, yb = fr.y - 0.1;
+        const y = H(s - 0.001, lin, fr.x + fr.rx * lin, fr.z + fr.rz * lin, 2) + 0.16, yb = fr.y - 0.1;
         pos.push(x, y, z); uv.push(sd > 0 ? 1 : 0, s / 2.4); top.push([x, y, z, yb]);
         if (j && j % 2 === 0) beam(parts, woodD, x, yb, z, x, y - 0.05, z, 0.18);
       }
@@ -217,8 +217,31 @@ function updateRings(dt) {
     const d = Math.hypot(g.x - camera.position.x, g.z - camera.position.z); if (d > 130) continue;
     const n = Math.floor(dt * 70 + Math.random());
     for (let i = 0; i < n; i++) { const a = Math.random() * TAU, c = Math.cos(a) * g.r, sn = Math.sin(a) * g.r;
-      PS.fire.emit(g.x + g.rx * c, g.y + sn, g.z + g.rz * c, (Math.random() - 0.5) * 0.6, 1.4 + Math.random() * 1.6, (Math.random() - 0.5) * 0.6, 0.35 + Math.random() * 0.3, 0.55, 0.1, 1, 0.5 + Math.random() * 0.35, 0.1, 0.9, -1, 0.5); }
+      PS.fire.emit(g.x + g.rx * c, g.y + sn, g.z + g.rz * c, (Math.random() - 0.5) * 0.6, 1.4 + Math.random() * 1.6, (Math.random() - 0.5) * 0.6, 0.3 + Math.random() * 0.3, 0.42, 0.08, 1, 0.32 + Math.random() * 0.3, 0.06, 0.8, -1, 0.5); }
   }
 }
 function ringFx(g, r) { for (let i = 0; i < 40; i++) { const a = Math.random() * TAU, c = Math.cos(a) * g.r, sn = Math.sin(a) * g.r; PS.fire.emit(g.x + g.rx * c, g.y + sn, g.z + g.rz * c, r.vx * 0.5 + (Math.random() - 0.5) * 3, 1 + Math.random() * 3, r.vz * 0.5 + (Math.random() - 0.5) * 3, 0.5 + Math.random() * 0.4, 0.7, 0.1, 1, 0.75, 0.2, 1, -1, 0.6); } }
-function buildStructures(grp) { buildRavines(grp); buildTunnels(grp); buildKickers(grp); }
+// checkpoint arches at 1/4, 1/2 and 3/4 of the course
+function buildCheckpoints(grp) {
+  CR.cps = [];
+  const big = { bigjump: 1, jump: 1, crest: 1, drop: 1, bridge: 1, gap: 1, tunnel: 1, water: 1, rockfall: 1, geyser: 1 };
+  for (let k = 1; k <= 3; k++) {
+    let s = CR.sStart + CR.len * k / 4, n = 0;
+    const bad = (q) => tunnelAt(q) || tunnelAt(q + 14) || tunnelAt(q - 14) || inRavineS(q, 30) || CR.marks.some((m) => big[m.type] && Math.abs(m.s - q) < 42);
+    while (n < 40 && bad(s)) { s += 9; n++; }
+    if (n >= 40 || s > CR.sFin - 120) continue;
+    const fr = frameAt(s, {}), w = fr.w + 2.6, gp = new THREE.Group(), y0 = H(s, 0, fr.x, fr.z, true);
+    const mat = new THREE.MeshLambertMaterial({ color: lc(0x2a2c30) }), mat2 = new THREE.MeshLambertMaterial({ color: lc(0xffb347) });
+    for (const sd of [-1, 1]) {
+      const gy = H(s, sd * w, fr.x + fr.rx * sd * w, fr.z + fr.rz * sd * w, true) - y0;
+      const p = new THREE.Mesh(GEO.box, mat); p.position.set(-sd * w, gy + 3.6, 0); p.scale.set(0.4, 7.2, 0.4); p.castShadow = true; p.userData.sharedGeo = true; gp.add(p);
+      const b = new THREE.Mesh(GEO.box, mat2); b.position.set(-sd * w, gy + 0.5, 0); b.scale.set(0.8, 1.0, 0.8); b.userData.sharedGeo = true; gp.add(b);
+    }
+    const tex = textTex(1024, 128, (g, W2, H2) => { g.fillStyle = '#ffb347'; g.fillRect(0, 0, W2, H2); g.fillStyle = '#16181b'; g.fillRect(0, 12, W2, H2 - 24); g.fillStyle = '#ffcf6a'; g.font = 'italic 900 76px Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('CHECK POINT  ' + k + ' / 3', W2 / 2, H2 / 2 + 4); });
+    const bm = new THREE.Mesh(new THREE.PlaneGeometry(2 * w, 2 * w / 8), new THREE.MeshLambertMaterial({ map: tex, side: THREE.DoubleSide }));
+    bm.position.set(0, 6.6, -0.2); bm.rotation.y = Math.PI; gp.add(bm);
+    gp.position.set(fr.x, y0, fr.z); gp.rotation.y = fr.psi; grp.add(gp);
+    CR.cps.push(s);
+  }
+}
+function buildStructures(grp) { buildRavines(grp); buildTunnels(grp); buildKickers(grp); buildCheckpoints(grp); }

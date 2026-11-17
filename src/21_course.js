@@ -32,8 +32,8 @@ function buildCourse(si) {
   for (let k = 0; k < 3; k++) { const lam = 520 + R() * 900; waves.push({ lam, ph: R() * TAU, amp: lam / (TAU * 300 * 3) * (0.7 + 0.3 * R()) * tt.twist }); }
   // set pieces (bridges, gap jumps, tunnels) get a straight of their own, spread along the stage
   const setP = (STAGE.set || []).map((type, k, A) => {
-    const c = sStart + 330 + (k + 0.5) / A.length * (L - 620), half = type === 'gap' ? [150, 75] : type === 'tunnel' ? [115, 115] : [112, 72];
-    return { type, a: c - half[0], b: c + half[1], pad: type === 'tunnel' ? 70 : 45, done: false };
+    const c = sStart + 330 + (k + 0.5) / A.length * (L - 620), half = type === 'gap' ? [150, 75] : type === 'tunnel' ? [115, 115] : type === 'kicker' ? [60, 95] : [112, 72];
+    return { type, a: c - half[0], b: c + half[1], pad: type === 'tunnel' ? 70 : type === 'kicker' ? 25 : 45, done: false };
   });
   const turns = [];
   {
@@ -133,7 +133,7 @@ function buildCourse(si) {
 
   let s = sStart + 170;
   const sEnd = sFin - 120;
-  const dens = STAGE.dens;
+  const dens = STAGE.dens, SPT = { tunnel: 'tunnel', kicker: 'jump' };
   let lastType = '';
   while (s < sEnd) {
     let type = pickW(STAGE.mix, R);
@@ -143,8 +143,8 @@ function buildCourse(si) {
     let spNow = false;
     if (sp) {
       const room = sp.a - s, LEN = { river: 290, sand: 160, mud: 140, crest: 125, rocks: 115, trees: 115, logs: 110 };
-      if (room < 60) { s = Math.max(s, sp.a); type = sp.type === 'tunnel' ? 'tunnel' : 'ravine'; sp.done = true; spNow = true; }
-      else if (room < (LEN[type] || 95)) { s = sp.a; type = sp.type === 'tunnel' ? 'tunnel' : 'ravine'; sp.done = true; spNow = true; }
+      if (room < 60) { s = Math.max(s, sp.a); type = SPT[sp.type] || 'ravine'; sp.done = true; spNow = true; }
+      else if (room < (LEN[type] || 95)) { s = sp.a; type = SPT[sp.type] || 'ravine'; sp.done = true; spNow = true; }
     }
     // jumps and water crossings need a straight piece of trail
     if (!spNow && (type === 'tunnel' || type === 'ravine')) type = 'plain';
@@ -155,16 +155,16 @@ function buildCourse(si) {
     lastType = type;
     let used = 40;
     if (type === 'jump') {
-      const kr = R(), w = wAtS(s);
+      const forced = spNow && sp.type === 'kicker', kr = forced ? 1 : R(), w = wAtS(s);
       let f;
-      if (kr < 0.24) f = { kind: 'kicker', s: s + 10, H: 0.9 + R() * 0.6, Lr: 6 + R() * 2, Ld: 2.6 };
-      else if (kr < 0.46) f = { kind: 'table', s: s + 12, H: 1.6 + R() * 0.8, Lr: 9 + R() * 2, Lt: 10 + R() * 6, Ld: 9 };
-      else if (kr < 0.64) f = { kind: 'double', s: s + 10, H: 1.5 + R() * 0.7, Lr: 7, Ld: 4.5, gap: 9 + R() * 4, Lr2: 4.5, Ld2: 9 };
+      if (kr < 0.18) f = { kind: 'kicker', s: s + 10, H: 0.9 + R() * 0.6, Lr: 6 + R() * 2, Ld: 2.6 };
+      else if (kr < 0.36) f = { kind: 'table', s: s + 12, H: 1.6 + R() * 0.8, Lr: 9 + R() * 2, Lt: 10 + R() * 6, Ld: 9 };
+      else if (kr < 0.52) f = { kind: 'double', s: s + 10, H: 1.5 + R() * 0.7, Lr: 7, Ld: 4.5, gap: 9 + R() * 4, Lr2: 4.5, Ld2: 9 };
       else {
         // a big wooden kicker on one side of the trail: take it for air and tricks, or ride round it
         const Lr = 12 + R() * 2, hwr = 3.3, lim = Math.max(0, w - hwr - 1.6);
         f = { kind: 'wood', s: s + Lr + 14, H: 2.7 + R() * 0.8, Lr, lc: (R() < 0.5 ? -1 : 1) * R() * lim, hwr };
-        if (R() < 0.7) f.ring = { s: f.s + 9.5, r: 2.5, dy: f.H + 2.1 };
+        if (forced || R() < 0.7) f.ring = { s: f.s + 9.5, r: 2.5, dy: f.H + 2.1 };
       }
       const len = f.kind === 'table' ? f.Lt + f.Ld : f.kind === 'double' ? f.Ld + f.gap + f.Lr2 + f.Ld2 : f.kind === 'wood' ? 1 : f.Ld;
       f.a = f.s - f.Lr - 1; f.b = f.s + len + 1;

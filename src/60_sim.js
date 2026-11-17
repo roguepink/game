@@ -140,6 +140,7 @@ function playerControl(r) {
   if (GP.steer) steer = GP.steer;
   r.inp.thr = thr; r.inp.steer = steer; r.inp.brake = (k.ArrowDown || k.KeyS || GP.brake) ? 1 : 0;
   r.inp.trick = !!(k.ArrowDown || k.KeyS || k.ShiftLeft || k.ShiftRight || k.KeyX || TOUCH.t || GP.trick); r.inp.trickKind = null;
+  if (steer) { r.steerT = GAME.t; r.steerD = steer; }
 }
 // seconds until the bike comes down (ballistic path against the ground ahead)
 const _aq = {};
@@ -166,8 +167,10 @@ function airTricks(r, dt) {
     if (tk.kind === 'spin') r.spinA = tk.dir * a; else r.flipA = tk.dir * a;
     if (u >= 1) { r.flipA = 0; r.spinA = 0; r.trick = null; trickDone(r, tk.kind === 'spin' ? 'spin' : tk.dir > 0 ? 'flip' : 'front'); }
   } else if (press && r.airT > 0.1) {
-    const kind = inp.trickKind || (Math.abs(inp.steer) > 0.5 ? 'spin' : 'flip');
-    r.trick = { kind, t: 0, dur: kind === 'spin' ? 0.6 : 0.66, dir: kind === 'spin' ? (inp.steer >= 0 ? -1 : 1) : (inp.thr > 0 || r.auto ? 1 : -1) };
+    // a steer press just before the trick button still counts (the thumb moves from the arrow to TRICK on a phone)
+    const st = Math.abs(inp.steer) > 0.5 ? inp.steer : (!r.auto && GAME.t - (r.steerT || -9) < 0.35 ? r.steerD : 0);
+    const kind = inp.trickKind || (st ? 'spin' : 'flip');
+    r.trick = { kind, t: 0, dur: kind === 'spin' ? 0.6 : 0.66, dir: kind === 'spin' ? (st >= 0 ? -1 : 1) : (inp.thr > 0 || r.auto ? 1 : -1) };
     r.whip *= 0.3;
   }
   // whip: lay the bike sideways while the stick is held
@@ -511,6 +514,13 @@ function updateRace(dt) {
     if (rel < 0) { A.vx += nx * rel * 0.5; A.vz += nz * rel * 0.5; B.vx -= nx * rel * 0.5; B.vz -= nz * rel * 0.5; }
     A.wobble = Math.max(A.wobble, 0.25); B.wobble = Math.max(B.wobble, 0.25);
   }
+  // checkpoints: place and gap to the bike ahead
+  { const p = GAME.player, cps = CR.cps || [];
+    if (GAME.state === 'race' && !p.auto && GAME.cpI < cps.length && p.q.s >= cps[GAME.cpI] && Math.abs(p.q.s - cps[GAME.cpI]) < 60) {
+      GAME.cpI++; rankRacers();
+      const ahead = GAME.order[p.rank - 2], gap = ahead ? Math.round(ahead.prog - p.prog) : 0;
+      showMsg('チェック ' + GAME.cpI + '/' + cps.length + '  ' + p.rank + '位' + (ahead ? '  前まで ' + gap + 'm' : '  トップ！'), p.rank <= 2 ? 'good s' : 's'); AU.sfx('count', 0.7);
+    } else if (GAME.cpI < cps.length && p.q.s > cps[GAME.cpI] + 60) GAME.cpI++; }
   // finish line
   for (const r of R) {
     if (!r.finished && r.q.s >= CR.sFin && !r.crash) {

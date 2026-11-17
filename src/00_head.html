@@ -88,6 +88,19 @@ body{position:relative;font-family:var(--font);font-weight:700;color:var(--ink)}
 #letter.on{opacity:1}
 #letter:before,#letter:after{content:"";position:absolute;left:0;right:0;height:64px;background:#000}
 #letter:before{top:0} #letter:after{bottom:0}
+/* ---- 3D screen effects ---- */
+#lens{width:var(--sw,1280px);height:720px}
+#speedfx{display:none;opacity:0;left:calc(var(--sw,1280px)*-.25);top:-180px;width:calc(var(--sw,1280px)*1.5);height:1080px;
+  background:repeating-conic-gradient(from 0deg at 50% 47%,rgba(255,255,255,0) 0deg,rgba(255,255,255,.55) .35deg,rgba(255,255,255,0) .9deg,rgba(255,255,255,0) 7deg),repeating-conic-gradient(from 3deg at 50% 47%,rgba(255,255,255,0) 0deg,rgba(255,236,200,.4) .25deg,rgba(255,255,255,0) .7deg,rgba(255,255,255,0) 11deg);
+  -webkit-mask-image:radial-gradient(ellipse at 50% 47%,transparent 30%,#000 70%);mask-image:radial-gradient(ellipse at 50% 47%,transparent 30%,#000 70%);animation:sfx .16s steps(4) infinite}
+@keyframes sfx{to{transform:rotate(14deg)}}
+#styleBox{position:absolute;right:30px;top:92px;text-align:right}
+#styleBox .k{font-size:13px;letter-spacing:.3em;color:var(--dim)}
+#styleNum{font-size:30px;line-height:1.05;color:#ffe08a}
+#boost{width:170px;height:9px;margin:6px 0 0 auto;background:rgba(255,255,255,.18);overflow:hidden;transform:skewX(-20deg)}
+#boost i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffcf6a,#ff5a2a)}
+#boostLbl{font-size:12px;letter-spacing:.24em;color:var(--dim);margin-top:3px}
+#styleBox.on #boostLbl{color:#ffb347}
 /* ---- title ---- */
 #title{transition:opacity .4s}
 #title.off{opacity:0}
@@ -184,6 +197,12 @@ body{position:relative;font-family:var(--font);font-weight:700;color:var(--ink)}
 .tb{position:absolute;bottom:34px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.14);border:3px solid rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;font-size:44px;color:rgba(255,255,255,.9);pointer-events:auto;touch-action:none}
 .tb.on{background:rgba(255,122,26,.55);border-color:#fff}
 #tbL{left:34px} #tbR{left:206px}
+#tbT{left:112px;bottom:204px;width:166px;height:104px;border-radius:52px;font-size:24px;font-style:italic;letter-spacing:.06em;flex-direction:column;line-height:1.1}
+#tbT small{font-size:12px;font-style:normal;color:var(--dim);letter-spacing:0;margin-top:3px}
+#tbT.air{border-color:#ffcf6a;background:rgba(255,190,70,.3)}
+#tbV{position:absolute;right:calc(50% - 104px);top:16px;width:64px;height:44px;font-size:15px;display:flex;align-items:center;justify-content:center;background:var(--panel);border:1px solid var(--line);pointer-events:auto}
+#stage.touch #styleBox{right:auto;left:30px;top:266px;text-align:left}
+#stage.touch #boost{margin-left:0}
 #tbA{right:0;bottom:0;top:120px;width:46%;height:auto;border-radius:0;background:none;border:none;display:block}
 #tbA .pedal{position:absolute;right:46px;bottom:34px;width:178px;height:178px;border-radius:50%;background:rgba(255,255,255,.12);border:3px solid rgba(255,255,255,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:22px;font-style:italic;letter-spacing:.06em}
 #tbA .pedal small{font-size:13px;font-style:normal;color:var(--dim);margin-top:4px;letter-spacing:0}
@@ -197,6 +216,8 @@ body{position:relative;font-family:var(--font);font-weight:700;color:var(--ink)}
 <div id="rotate"><b>⟳</b><div>画面を横向きにしてください<br><small>Please rotate your device</small></div></div>
 <div id="stage">
   <canvas id="gl" width="1280" height="720"></canvas>
+  <div class="layer" id="speedfx"></div>
+  <canvas class="layer" id="lens" width="640" height="360"></canvas>
   <div class="layer" id="vig"></div>
   <div class="layer" id="flash"></div>
   <div class="layer" id="letter"></div>
@@ -207,6 +228,7 @@ body{position:relative;font-family:var(--font);font-weight:700;color:var(--ink)}
     <div id="board"></div>
     <div id="prog" class="sh"><div id="progTxt"></div><div id="progBar"><div id="progFill"></div><div id="progFlag"></div></div></div>
     <div id="timer" class="sh"><div class="k">TIME</div><div id="timeTxt" class="num">0:00.00</div></div>
+    <div id="styleBox" class="sh"><div class="k">STYLE</div><div id="styleNum" class="num">0</div><div id="boost"><i></i></div><div id="boostLbl">BOOST</div></div>
     <div id="speedBox" class="sh"><span id="speedNum" class="num">0</span><span id="speedUnit">km/h</span><div id="rpm"><i></i></div><div id="surfTxt"></div></div>
     <div id="msg" class="sh"></div>
     <div id="count" class="sh"></div>
@@ -215,7 +237,7 @@ body{position:relative;font-family:var(--font);font-weight:700;color:var(--ink)}
   <div class="layer" id="title">
     <div id="tShade"></div>
     <div id="logoWrap" class="sh"><div id="logoSub">OFFROAD ENDURO RACING</div><div id="logo">GRIT<span>TRAIL</span></div><div id="logoJp">グリット・トレイル ― 障害物だらけの一本道を、ゴールまで。</div>
-      <div id="logoFeat">全10ステージ／2位以内で次のステージへ<br>岩・丸太・川・砂・泥。よけて走るほど速い。</div></div>
+      <div id="logoFeat">全10ステージ／2位以内で次のステージへ<br>つり橋・谷越え・トンネル・火の輪の大ジャンプ。<br>空中トリックを決めるとブースト。</div></div>
     <div id="pressKey" class="sh">PRESS ANY KEY<small>タップ・クリック・何かキーでスタート</small></div>
     <div id="ctrls"></div>
     <div id="demoTag">DEMO</div>
@@ -228,7 +250,8 @@ body{position:relative;font-family:var(--font);font-weight:700;color:var(--ink)}
   <div class="layer" id="touch">
     <div class="tb" id="tbL">◀</div><div class="tb" id="tbR">▶</div>
     <div class="tb" id="tbA"><div class="pedal">ACCEL<small>押している間 加速</small></div></div>
-    <div id="tbP">II</div>
+    <div class="tb" id="tbT">TRICK<small>空中で押す</small></div>
+    <div id="tbP">II</div><div id="tbV">視点</div>
   </div>
   <div class="layer" id="fade"></div>
   <div class="layer" id="loading"><div class="big">GRIT<span>TRAIL</span></div><div id="loadmsg">Loading…</div><div id="loadbar"><i></i></div></div>
@@ -241,8 +264,8 @@ body{position:relative;font-family:var(--font);font-weight:700;color:var(--ink)}
     tagline: '3Dの オフロード バイクレース',
     badges: ['無料', '広告なし', '登録なし', 'スマホは横向き'],
     shots: ['shots/1.jpg', 'shots/2.jpg', 'shots/3.jpg', 'shots/4.jpg', 'shots/5.jpg'],
-    desc: '岩・倒木・川・泥だらけの長い一本道を、オフロードバイクでゴールまで走る3Dのレースゲームです。6台で走り、2位以内に入ると次のステージへ進めます。',
-    points: ['押している間だけ加速、離すと減速。障害物をよけて走るほど速い', '川を渡り、泥と砂を抜け、大ジャンプ。空中のアクセルで着地を合わせる', '全10ステージ。進むほどライバルが速くなる'],
+    desc: '岩・倒木・川・泥だらけの山道を、オフロードバイクでゴールまで走る3Dのレースゲームです。谷にかかるつり橋、トンネル、大ジャンプ台もあります。6台で走り、2位以内に入ると次のステージへ進めます。',
+    points: ['押している間だけ加速、離すと減速。障害物をよけて走るほど速い', 'つり橋・谷越えジャンプ・トンネル・火の輪。カーブでは道ごと傾く立体コース', '空中でトリックを決めるとブースト。ライダー目線にも切り替えられる', '全10ステージ。進むほどライバルが速くなる'],
     playLabel: '▶ このまま遊ぶ'
   };
 </script>
