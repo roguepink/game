@@ -1,0 +1,48 @@
+}
+</script>
+<script>
+(function () {
+  // three.js r128 is loaded by the <script> tag above (cdnjs); these mirrors are tried only if that failed
+  var urls = [
+    'https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js',
+    'https://unpkg.com/three@0.128.0/build/three.min.js',
+    'vendor/three.min.js'
+  ];
+  var i = 0;
+  function msg(t) { var el = document.getElementById('loadmsg'); if (el) el.textContent = t; }
+  function fit() {
+    var st = document.getElementById('stage'), wr = document.getElementById('wrap');
+    var vw = wr.clientWidth || window.innerWidth, vh = wr.clientHeight || window.innerHeight;
+    // wide phones: stretch the stage sideways (up to 21:9) instead of leaving bars
+    var sw = Math.max(1280, Math.min(1680, Math.round(720 * vw / vh)));
+    if (sw !== window.__SW) { window.__SW = sw; st.style.setProperty('--sw', sw + 'px'); if (window.__onStageW) window.__onStageW(sw); }
+    var k = Math.min(vw / sw, vh / 720);
+    st.style.transform = 'scale(' + k + ')';
+    st.style.left = Math.round((vw - sw * k) / 2) + 'px';
+    st.style.top = Math.round((vh - 720 * k) / 2) + 'px';
+  }
+  fit(); window.addEventListener('resize', fit); window.addEventListener('orientationchange', function () { setTimeout(fit, 200); });
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(document.getElementById('wrap'));
+  function boot() {
+    try { startGame(); }
+    catch (e) { console.error(e); msg('エラーが発生しました: ' + (e && e.message ? e.message : e)); }
+  }
+  function next() {
+    if (i >= urls.length) { msg('three.js を読み込めませんでした。ネットワーク接続を確認して、ページを再読み込みしてください。'); return; }
+    var s = document.createElement('script');
+    s.src = urls[i++];
+    s.onload = function () { if (window.THREE) boot(); else next(); };
+    s.onerror = next;
+    document.head.appendChild(s);
+  }
+  if (window.THREE) boot(); else next();
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', function () { try { navigator.serviceWorker.register('sw.js').catch(function () {}); } catch (e) {} });
+}
+</script>
+</body>
+</html>

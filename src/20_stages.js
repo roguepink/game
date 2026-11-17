@@ -1,0 +1,131 @@
+// ===================== Stages & themes =====================
+// Riders: index 0 is the player. Fictional names only.
+const RIDERS = [
+  { name: 'あなた', short: 'YOU', num: 23, col: 0xd7262e, col2: 0xf2f2f2, helm: 0xf2f2f2, vm: 0, sk: 0 },
+  { name: 'ハヤセ', short: 'HAYASE', num: 12, col: 0x1f5fc8, col2: 0xffffff, helm: 0x1f5fc8, vm: 0.022, sk: 0.06 },
+  { name: 'ヴォルコフ', short: 'VOLKOV', num: 9, col: 0xf07a12, col2: 0x1a1a1a, helm: 0x1a1a1a, vm: 0.034, sk: -0.07 },
+  { name: 'タチバナ', short: 'TACHIBANA', num: 44, col: 0x2f9a35, col2: 0x111111, helm: 0xe8e8e8, vm: 0.006, sk: 0.0 },
+  { name: 'ミラー', short: 'MILLER', num: 31, col: 0x7b3fc4, col2: 0xf2f2f2, helm: 0x7b3fc4, vm: -0.012, sk: 0.04 },
+  { name: 'サントス', short: 'SANTOS', num: 77, col: 0xf0c11a, col2: 0x222222, helm: 0x222222, vm: -0.022, sk: -0.02 },
+];
+
+const THEMES = {
+  meadow: {
+    sky: [0x3f78c0, 0x86b4e0, 0xd6e6ef], fog: [0xc9dbe4, 140, 820], sun: [0.45, 0.62, 0.38], sunCol: 0xfff1d8, sunI: 1.25, hemi: [0xcfe3f2, 0x6a6448, 0.62], exp: 1.05,
+    grass: [0x6f8f3a, 0x4f7a2c, 0x5c7d3a], rock: [0x8a857c, 0x6a665f], dirt: 0x8b6a47, trailCol: 0x9a7552, snowY: null,
+    base: 'DIRT', off: 'GRASS', water: 0x40606a,
+    terr: { bank: 0.05, valley: 0.0016, wall: 0, wallD: 60, far: 22, near: 1.4, hill: 1.0, twist: 1.0, trend: 0.004 },
+    veg: { pine: 0.5, broad: 1.2, birch: 0.4, dead: 0, cactus: 0, bush: 1.0, dry: 0, tuft: 1.0, flower: 1.0, reed: 0.6 },
+    rocks: 0.6, mtn: [0x6c7f92, 0x8a9aab], mtnSnow: true, mtnH: 1.0, dust: [0.62, 0.52, 0.40], clouds: 14,
+  },
+  quarry: {
+    sky: [0x4d7fb6, 0x9ab9d6, 0xe2e8ea], fog: [0xd6dcdc, 130, 760], sun: [-0.4, 0.7, 0.35], sunCol: 0xfff5e6, sunI: 1.3, hemi: [0xdde6ee, 0x77746c, 0.66], exp: 1.02,
+    grass: [0x7d8a4a, 0x66753c, 0x707c50], rock: [0xa8a49c, 0x86827a], dirt: 0x9a948a, trailCol: 0xa29c90, snowY: null,
+    base: 'GRAVEL', off: 'ROCK', water: 0x5a7478,
+    terr: { bank: 0.12, valley: 0.0022, wall: 18, wallD: 46, far: 18, near: 2.2, hill: 0.9, twist: 0.9, trend: 0.0 },
+    veg: { pine: 0.25, broad: 0.35, birch: 0.2, dead: 0.2, cactus: 0, bush: 0.6, dry: 0.5, tuft: 0.45, flower: 0.2, reed: 0.2 },
+    rocks: 1.6, mtn: [0x7d8790, 0x9aa2a8], mtnSnow: false, mtnH: 0.8, dust: [0.72, 0.70, 0.66], clouds: 10,
+  },
+  creek: {
+    sky: [0x3c74b8, 0x8ab3d8, 0xd2e2e8], fog: [0xbcd0d4, 110, 700], sun: [0.3, 0.66, -0.5], sunCol: 0xfff0d2, sunI: 1.15, hemi: [0xc9dde8, 0x4d5a3a, 0.62], exp: 1.05,
+    grass: [0x557f2e, 0x3d6a26, 0x4a6e34], rock: [0x7e7d76, 0x5d5c57], dirt: 0x6e5438, trailCol: 0x7a5c3e, snowY: null,
+    base: 'DIRT', off: 'GRASS', water: 0x3a5a5e,
+    terr: { bank: 0.07, valley: 0.0024, wall: 6, wallD: 70, far: 26, near: 1.6, hill: 1.1, twist: 1.1, trend: -0.004 },
+    veg: { pine: 1.5, broad: 0.9, birch: 0.5, dead: 0.1, cactus: 0, bush: 1.1, dry: 0, tuft: 1.0, flower: 0.4, reed: 1.4 },
+    rocks: 0.9, mtn: [0x5d7184, 0x7a8ea0], mtnSnow: true, mtnH: 1.1, dust: [0.50, 0.42, 0.33], clouds: 16,
+  },
+  canyon: {
+    sky: [0x3a6fb4, 0x8cb2d6, 0xe8dccb], fog: [0xe0c9ad, 150, 900], sun: [0.55, 0.58, 0.25], sunCol: 0xffe6c4, sunI: 1.35, hemi: [0xe3d6c8, 0x8a5a3c, 0.6], exp: 1.0,
+    grass: [0x9a8a4c, 0x857a42, 0x9a7e52], rock: [0xb06440, 0x8a4a30], dirt: 0xa86a44, trailCol: 0xb27a52, snowY: null,
+    base: 'DIRT', off: 'ROCK', water: 0x6a6450,
+    terr: { bank: 0.1, valley: 0.0018, wall: 46, wallD: 52, far: 24, near: 2.4, hill: 1.25, twist: 1.0, trend: 0.006 },
+    veg: { pine: 0, broad: 0, birch: 0, dead: 0.35, cactus: 0.7, bush: 0.5, dry: 1.2, tuft: 0.35, flower: 0, reed: 0 },
+    rocks: 1.5, mtn: [0xa06a52, 0xc08a6a], mtnSnow: false, mtnH: 0.9, dust: [0.72, 0.50, 0.36], clouds: 6,
+  },
+  mud: {
+    sky: [0x6c7a86, 0x9aa6ae, 0xc4c9ca], fog: [0xa8b0ae, 80, 520], sun: [0.2, 0.55, 0.5], sunCol: 0xe8eadf, sunI: 1.0, hemi: [0xbcc6c8, 0x5a5a48, 0.95], exp: 1.25,
+    grass: [0x4f6a2a, 0x3c5822, 0x46602e], rock: [0x6e6c64, 0x56544e], dirt: 0x4e3a28, trailCol: 0x5a4430, snowY: null,
+    base: 'DIRT', off: 'GRASS', water: 0x3e3e30,
+    terr: { bank: 0.06, valley: 0.002, wall: 4, wallD: 70, far: 20, near: 1.5, hill: 0.8, twist: 1.15, trend: -0.002 },
+    veg: { pine: 1.7, broad: 1.2, birch: 0.7, dead: 0.3, cactus: 0, bush: 1.4, dry: 0, tuft: 1.0, flower: 0.1, reed: 1.0 },
+    rocks: 0.6, mtn: [0x5d6a70, 0x737f84], mtnSnow: false, mtnH: 0.8, dust: [0.36, 0.30, 0.24], clouds: 26,
+  },
+  dunes: {
+    sky: [0x2f6cbc, 0x7fb0dc, 0xf0e2c8], fog: [0xead8bc, 170, 980], sun: [-0.5, 0.6, 0.3], sunCol: 0xfff0d0, sunI: 1.4, hemi: [0xf0e4d0, 0xa0804e, 0.62], exp: 0.98,
+    grass: [0xc8a26a, 0xb89058, 0xc4a070], rock: [0x9a7a5a, 0x7a5e44], dirt: 0xc79a62, trailCol: 0xc9a06a, snowY: null,
+    base: 'SAND', off: 'SAND', water: 0x5a7a74,
+    terr: { bank: 0.04, valley: 0.0012, wall: 0, wallD: 80, far: 30, near: 2.6, hill: 1.6, twist: 0.9, trend: 0.0 },
+    veg: { pine: 0, broad: 0, birch: 0, dead: 0.25, cactus: 0.9, bush: 0.2, dry: 1.0, tuft: 0.25, flower: 0, reed: 0 },
+    rocks: 0.5, mtn: [0xc89c6c, 0xdcb488], mtnSnow: false, mtnH: 0.55, dust: [0.82, 0.70, 0.52], clouds: 4,
+  },
+  alpine: {
+    sky: [0x2e66b6, 0x7fadda, 0xdce8f0], fog: [0xcfdbe4, 130, 820], sun: [0.4, 0.66, -0.4], sunCol: 0xfff6ea, sunI: 1.3, hemi: [0xdbe8f4, 0x5e6050, 0.66], exp: 1.02,
+    grass: [0x6a7f3c, 0x55692f, 0x6c7656], rock: [0x8c8a86, 0x6a6864], dirt: 0x7a6a56, trailCol: 0x857464, snowY: 62,
+    base: 'GRAVEL', off: 'ROCK', water: 0x4a6a78,
+    terr: { bank: 0.1, valley: 0.0026, wall: 24, wallD: 60, far: 30, near: 2.4, hill: 1.3, twist: 1.05, trend: 0.012 },
+    veg: { pine: 1.2, broad: 0.1, birch: 0.2, dead: 0.2, cactus: 0, bush: 0.6, dry: 0.3, tuft: 0.8, flower: 0.6, reed: 0.4 },
+    rocks: 1.8, mtn: [0x7a8898, 0x9aa8b8], mtnSnow: true, mtnH: 1.4, dust: [0.62, 0.60, 0.56], clouds: 14,
+  },
+  badlands: {
+    sky: [0x3a4f86, 0xd0886a, 0xf4b878], fog: [0xe0a47c, 120, 760], sun: [-0.6, 0.2, 0.28], sunCol: 0xffb070, sunI: 1.25, hemi: [0xe8b090, 0x5a3a2a, 0.62], exp: 1.06,
+    grass: [0x8a7a44, 0x75683a, 0x8a6c4c], rock: [0xa0664a, 0x7c4c36], dirt: 0x9a6a48, trailCol: 0xa4744e, snowY: null,
+    base: 'DIRT', off: 'ROCK', water: 0x6a5a50,
+    terr: { bank: 0.09, valley: 0.0018, wall: 30, wallD: 58, far: 26, near: 2.2, hill: 1.35, twist: 1.0, trend: -0.004 },
+    veg: { pine: 0, broad: 0.05, birch: 0, dead: 0.5, cactus: 0.4, bush: 0.5, dry: 1.2, tuft: 0.4, flower: 0, reed: 0.1 },
+    rocks: 1.4, mtn: [0x8a5a58, 0xb07a6a], mtnSnow: false, mtnH: 0.85, dust: [0.70, 0.50, 0.38], clouds: 10,
+  },
+  volcano: {
+    sky: [0x2c3442, 0x6a5a5a, 0xb08a70], fog: [0x8a7a72, 100, 640], sun: [0.5, 0.35, 0.45], sunCol: 0xffc69a, sunI: 1.25, hemi: [0xc0b0aa, 0x4a3e38, 0.9], exp: 1.35,
+    grass: [0x66654a, 0x55553a, 0x56504a], rock: [0x4a4542, 0x36322f], dirt: 0x4a4542, trailCol: 0x55504b, snowY: null,
+    base: 'GRAVEL', off: 'ROCK', water: 0x3a4648,
+    terr: { bank: 0.12, valley: 0.0024, wall: 22, wallD: 54, far: 34, near: 2.8, hill: 1.4, twist: 1.0, trend: 0.01 },
+    veg: { pine: 0.15, broad: 0, birch: 0, dead: 0.8, cactus: 0, bush: 0.3, dry: 0.6, tuft: 0.25, flower: 0, reed: 0 },
+    rocks: 2.0, mtn: [0x3e3a3c, 0x5a5250], mtnSnow: false, mtnH: 1.5, dust: [0.36, 0.34, 0.33], clouds: 18, volcano: true, lava: true,
+  },
+  grand: {
+    sky: [0x34588e, 0xc29a7e, 0xf6cf98], fog: [0xe2c4a0, 120, 780], sun: [0.62, 0.26, -0.3], sunCol: 0xffc888, sunI: 1.3, hemi: [0xe6c8b0, 0x50463a, 0.62], exp: 1.06,
+    grass: [0x6c7a34, 0x55682a, 0x66703e], rock: [0x8c7a6a, 0x6a5c50], dirt: 0x7c5c40, trailCol: 0x86643f, snowY: 70,
+    base: 'DIRT', off: 'GRASS', water: 0x4a5a5a,
+    terr: { bank: 0.08, valley: 0.0022, wall: 14, wallD: 62, far: 30, near: 2.0, hill: 1.35, twist: 1.1, trend: 0.004 },
+    veg: { pine: 1.2, broad: 0.8, birch: 0.3, dead: 0.3, cactus: 0, bush: 1.0, dry: 0.3, tuft: 0.9, flower: 0.3, reed: 0.8 },
+    rocks: 1.3, mtn: [0x6a6a7c, 0x9a8a90], mtnSnow: true, mtnH: 1.3, dust: [0.58, 0.47, 0.36], clouds: 12,
+  },
+};
+
+// mix: weights of section types; dens: scattered obstacles per 100 m; obst: weights of scatter obstacle types
+const STAGES = [
+  { name: '草原トレイル', en: 'MEADOW TRAIL', theme: 'meadow', set: ['bridge', 'kicker', 'gap', 'tunnel', 'kicker'], len: 2600, seed: 101, dens: 1.0,
+    desc: 'ゆるやかな丘と林道。まずは岩と丸太のよけ方に慣れよう。',
+    mix: { crates: 1.1, fences: 0.9, plain: 2, jump: 2.2, whoops: 1, rocks: 1, logs: 1.2, puddles: 1.2, creek: 0.8, hay: 1 }, obst: { rock: 3, boulder: 1.2, stump: 0.6, hay: 0.6 } },
+  { name: '砂利の採石場', en: 'GRAVEL QUARRY', theme: 'quarry', set: ['gap', 'kicker', 'tunnel', 'bridge', 'gap'], len: 2900, seed: 202, dens: 1.25,
+    desc: 'すべる砂利と岩の山。段差の飛び降りに注意。',
+    mix: { crates: 1.2, rockfall: 0.9, plain: 1.5, jump: 2, drop: 1.4, rocks: 2, whoops: 0.8, sand: 0.6, puddles: 0.6, barrels: 1 }, obst: { rock: 3, boulder: 2, barrel: 0.6 } },
+  { name: '渓流クロッシング', en: 'CREEK CROSSING', theme: 'creek', set: ['bridge', 'tunnel', 'kicker', 'bridge', 'gap'], len: 3100, seed: 303, dens: 1.35,
+    desc: '何度も川を渡り、川の中を走る。倒木だらけの森。',
+    mix: { fences: 0.7, plain: 1, creek: 2.6, river: 1.4, logs: 2, rocks: 1, jump: 1.2, trees: 1 }, obst: { rock: 2.5, boulder: 1.4, stump: 1, log: 1 } },
+  { name: '赤土キャニオン', en: 'RED CANYON', theme: 'canyon', set: ['gap', 'bridge', 'kicker', 'tunnel', 'gap', 'bridge'], len: 3300, seed: 404, dens: 1.45,
+    desc: '岩壁の谷。大きな丘越えで高く飛ぶ。',
+    mix: { rockfall: 1.3, crates: 0.5, plain: 1, jump: 2.4, crest: 2, drop: 1.2, rocks: 2, whoops: 1, sand: 0.6 }, obst: { rock: 2.5, boulder: 2.4, cactus: 0.8 } },
+  { name: '泥の森', en: 'MUDDY FOREST', theme: 'mud', set: ['bridge', 'kicker', 'tunnel', 'gap', 'bridge'], len: 3400, seed: 505, dens: 1.55,
+    desc: '深い泥と水たまり、倒木。泥を避けたライン取りがカギ。',
+    mix: { fences: 0.9, crates: 0.6, plain: 1, mud: 2.6, logs: 2.4, puddles: 2, trees: 1.6, creek: 1, jump: 0.8 }, obst: { rock: 1.6, boulder: 1, stump: 1.6, log: 1.6 } },
+  { name: 'サンドデューン', en: 'SAND DUNES', theme: 'dunes', set: ['gap', 'bridge', 'kicker', 'gap', 'gap'], len: 3600, seed: 606, dens: 1.5,
+    desc: 'うねる砂丘を飛び越えて。砂は重くスピードが落ちる。',
+    mix: { crates: 0.7, plain: 1, crest: 3, jump: 1.6, whoops: 1.4, sand: 1.5, rocks: 0.8 }, obst: { rock: 1.5, boulder: 1.4, cactus: 1.6, barrel: 0.5 } },
+  { name: '高原ガレ場', en: 'ALPINE SCREE', theme: 'alpine', set: ['tunnel', 'bridge', 'kicker', 'gap', 'tunnel', 'bridge'], len: 3800, seed: 707, dens: 1.75,
+    desc: '岩だらけのガレ場と雪どけの沢。ライン選びが勝負。',
+    mix: { rockfall: 1.5, geyser: 0.4, plain: 1, rocks: 3, creek: 1.4, river: 0.8, jump: 1.6, drop: 1, crest: 1 }, obst: { rock: 3, boulder: 2.6, stump: 0.5 } },
+  { name: '夕暮れの荒野', en: 'SUNSET BADLANDS', theme: 'badlands', set: ['gap', 'bridge', 'kicker', 'gap', 'tunnel', 'kicker', 'gap', 'bridge'], len: 4000, seed: 808, dens: 1.8,
+    desc: '夕日の荒野。連続ジャンプと崖下り。',
+    mix: { rockfall: 1.1, crates: 0.9, plain: 1, jump: 2.6, crest: 1.6, drop: 1.6, rocks: 2, whoops: 1.2, sand: 0.8, barrels: 0.6 }, obst: { rock: 2.5, boulder: 2.4, cactus: 0.6, barrel: 0.6 } },
+  { name: '黒い火山', en: 'BLACK VOLCANO', theme: 'volcano', set: ['gap', 'tunnel', 'kicker', 'bridge', 'gap', 'tunnel', 'gap'], len: 4300, seed: 909, dens: 1.8,
+    desc: '黒い溶岩の荒れ地。岩の密度は最大級。',
+    mix: { rockfall: 1.4, geyser: 1.7, plain: 0.8, rocks: 3, jump: 2, drop: 1.6, crest: 1.4, whoops: 1, river: 0.4 }, obst: { rock: 3, boulder: 3 } },
+  { name: 'グランドエンデューロ', en: 'GRAND ENDURO', theme: 'grand', set: ['bridge', 'tunnel', 'kicker', 'gap', 'bridge', 'tunnel', 'kicker', 'gap', 'bridge'], len: 4900, seed: 1010, dens: 1.85,
+    desc: '最終ステージ。川・泥・砂・岩、すべてが待つ長距離戦。',
+    mix: { rockfall: 0.8, geyser: 0.6, crates: 0.8, fences: 0.6, plain: 0.8, jump: 2, crest: 1.2, drop: 1, rocks: 2, logs: 1.6, creek: 1.6, river: 1, mud: 1.2, sand: 0.8, whoops: 1, trees: 1 }, obst: { rock: 2.6, boulder: 2.4, stump: 1, log: 1 } },
+];
+// rival difficulty per stage (k = 0..9)
+function stageAI(k) {
+  return { vmul: 0.80 + 0.018 * k, skill: 0.72 + 0.028 * k, err: 0.1 - 0.008 * k };
+}

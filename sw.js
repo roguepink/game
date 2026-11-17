@@ -1,5 +1,5 @@
 // Offline cache: app shell is precached, three.js (CDN) is cached on first successful load.
-const VER = 'grit-trail-v9';
+const VER = 'grit-trail-v10';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/maskable-512.png', './icons/apple-touch-icon.png', './vendor/three.min.js', './install.js', './shots/1.jpg', './shots/2.jpg', './shots/3.jpg', './shots/4.jpg', './shots/5.jpg'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(VER).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => {
