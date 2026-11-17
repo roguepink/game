@@ -90,7 +90,7 @@ function updateFx(dt, dtv) {
   // eyes adjust inside tunnels: the tunnel goes dark, the way out glows
   const inT = tr && !tr.crash && tunnelDark(tr) ? 1 : 0;
   FX.tun = damp(FX.tun, inT, inT ? 3.5 : 2.2, dt);
-  hemi.intensity = FX.hemi0 * (1 - 0.62 * FX.tun); renderer.toneMappingExposure = FX.exp0 * (1 + 0.5 * FX.tun);
+  hemi.intensity = FX.hemi0 * (1 - 0.42 * FX.tun); renderer.toneMappingExposure = FX.exp0 * (1 + 0.6 * FX.tun);
   // speed lines
   const v = tr ? Math.max(0, tr.spd) : 0, want = play && tr && !tr.crash ? clamp((v - 25.5) / 7, 0, 1) * 0.3 + (tr.boostT > 0 ? 0.5 : 0) : 0;
   FX.spd = damp(FX.spd, want, 5, dt);

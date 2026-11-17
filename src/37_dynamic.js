@@ -73,7 +73,7 @@ function buildDynamic(grp) {
     g.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0.18, 0, 0, -0.18, 0.55, 0.06, -0.05, 0, 0, 0.18, -0.55, 0.06, -0.05, 0, 0, -0.18], 3)); g.computeVertexNormals();
     const bm = new THREE.MeshBasicMaterial({ color: T.snowY !== null ? 0x2a2a2e : 0x1e1e22, side: THREE.DoubleSide });
     DYN.birdGeo = g; g.__own = true;
-    for (let f = 0; f < 3; f++) { const fl = { s: 0, l: 0, state: 0, t: 0, b: [] }; for (let k = 0; k < 7; k++) { const m = new THREE.Mesh(g, bm); m.userData.sharedGeo = true; grp.add(m); fl.b.push({ m, ox: (R() - 0.5) * 5, oz: (R() - 0.5) * 5, vx: 0, vy: 0, vz: 0, ph: R() * 6 }); } DYN.birds.push(fl); placeFlock(fl, CR.sStart + 260 + f * 240); }
+    for (let f = 0; f < 3; f++) { const fl = { s: 0, l: 0, state: 0, t: 0, b: [] }; for (let k = 0; k < 7; k++) { const m = new THREE.Mesh(g, bm); grp.add(m); fl.b.push({ m, ox: (R() - 0.5) * 5, oz: (R() - 0.5) * 5, vx: 0, vy: 0, vz: 0, ph: R() * 6 }); } DYN.birds.push(fl); placeFlock(fl, CR.sStart + 260 + f * 240); }
   }
 }
 function placeFlock(fl, s) {

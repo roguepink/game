@@ -202,7 +202,7 @@ function buildKickers(grp) {
     if (f.ring) {
       const rg = f.ring; frameAt(rg.s, fr);
       rg.x = fr.x + fr.rx * f.lc; rg.z = fr.z + fr.rz * f.lc; rg.y = yAtS(f.s) + rg.dy;
-      const m = new THREE.Mesh(ringGeo, ringMat); m.scale.setScalar(rg.r); m.position.set(rg.x, rg.y, rg.z); m.rotation.y = fr.psi; m.userData.sharedGeo = true; grp.add(m);
+      const m = new THREE.Mesh(ringGeo, ringMat); m.scale.setScalar(rg.r); m.position.set(rg.x, rg.y, rg.z); m.rotation.y = fr.psi; grp.add(m);
       const posts = [];
       for (const sd of [-1, 1]) { const l = f.lc + sd * (rg.r + 0.1), x = fr.x + fr.rx * l, z = fr.z + fr.rz * l; beam(posts, 0x3a3a3a, x, fr.y - 0.2, z, x, rg.y, z, 0.14); }
       partsMesh(grp, posts, null, rg.s);
